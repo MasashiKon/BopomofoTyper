@@ -42,6 +42,23 @@ export enum Zhuyin {
   tone5 = '˙'
 }
 
+export enum PartOfSpeech {
+  noun,
+  verb,
+  adjective,
+  adverb,
+  pronoun,
+  preposition,
+  conjunction,
+  auxiliaryWord
+}
+
+export enum MeanOfChunk {
+  noun,
+  verv,
+  greeting
+}
+
 export enum AvailableLang {
   en,
   jp

@@ -1,15 +1,36 @@
-import type { Zhuyin } from "./enums"
+import type { Zhuyin, PartOfSpeech, MeanOfChunk } from './enums'
 
 export type Character = {
   char: string
-  pressed: boolean
 }
 
 export type ZhuyinChar = Omit<Character, 'char'> & {
   char: Zhuyin
+  done: boolean
 }
 
 export type Kanji = {
-  kanji: Character
+  display: String
   zhuyin: ZhuyinChar[]
+  done: boolean
+}
+
+export type Word = {
+  display: string
+  kanji: Kanji[]
+  partOfSpeech: PartOfSpeech
+  done: boolean
+}
+
+export type Chunk = {
+  display: string
+  word: (Word | Kanji)[]
+  meanOfChunk: MeanOfChunk
+  done: boolean
+}
+
+export type Sentence = {
+  // sentense: string
+  chunks: (Chunk | Word)[]
+  done: boolean
 }

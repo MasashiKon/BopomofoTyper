@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed } from 'vue'
-import type { Kanji, Chunk, Sentence, ZhuyinChar } from '@/type/types'
-import { Zhuyin, MeanOfChunk, AvailableLang } from '@/type/enums'
+import type { Kanji, Word, Chunk, Sentence, ZhuyinChar } from '@/type/types'
+import { Zhuyin, MeanOfChunk, AvailableLang, PartOfSpeech } from '@/type/enums'
 import getCorrespondingKeys from '@/utils/getCorrespondingKeys'
 import { isChuck, isWord } from '@/utils/verifyTypes'
 
@@ -32,15 +32,104 @@ const zaoAn: Chunk = reactive({
   done: false
 })
 
-let currentSentence: Sentence | null = reactive({
-  chunks: [zaoAn],
+const xian: Kanji = reactive({
+  display: '先',
+  zhuyin: [
+    { char: Zhuyin.x, done: false },
+    { char: Zhuyin.i, done: false },
+    { char: Zhuyin.an, done: false }
+  ],
   done: false
+})
+
+const sheng: Kanji = reactive({
+  display: '生',
+  zhuyin: [
+    { char: Zhuyin.sh, done: false },
+    { char: Zhuyin.eng, done: false }
+  ],
+  done: false
+})
+
+const xianSheng: Word = reactive({
+  display: '先生',
+  kanji: [xian, sheng],
+  partOfSpeech: PartOfSpeech.noun,
+  done: false
+})
+
+const sentence1: Sentence = reactive({
+  chunks: [zaoAn, xianSheng],
+  done: false
+})
+
+const ni: Kanji = reactive({
+  display: '你',
+  zhuyin: [
+    { char: Zhuyin.n, done: false },
+    { char: Zhuyin.i, done: false },
+    { char: Zhuyin.tone3, done: false }
+  ],
+  done: false
+})
+
+const dong: Kanji = reactive({
+  display: '懂',
+  zhuyin: [
+    { char: Zhuyin.d, done: false },
+    { char: Zhuyin.u, done: false },
+    { char: Zhuyin.eng, done: false }
+  ],
+  done: false
+})
+
+const ma: Kanji = reactive({
+  display: '嗎',
+  zhuyin: [
+    { char: Zhuyin.m, done: false },
+    { char: Zhuyin.a, done: false },
+    { char: Zhuyin.tone5, done: false }
+  ],
+  done: false
+})
+
+const niWord: Word = reactive({
+  display: '你',
+  kanji: [ni],
+  partOfSpeech: PartOfSpeech.noun,
+  done: false
+})
+
+const dongWord: Word = reactive({
+  display: '懂',
+  kanji: [dong],
+  partOfSpeech: PartOfSpeech.verb,
+  done: false
+})
+
+const maWord: Word = reactive({
+  display: '嗎',
+  kanji: [ma],
+  partOfSpeech: PartOfSpeech.particle,
+  done: false
+})
+
+const sentence2: Sentence = reactive({
+  chunks: [niWord, dongWord, maWord],
+  done: false
+})
+
+const sentences: Sentence[] = reactive([sentence1, sentence2])
+
+const currentSentence = computed(() => {
+  if(!sentences.length) return null
+  return sentences[0]
 })
 
 const kanjiArr = computed((): Kanji[] => {
   const kanjiArr: Kanji[] = []
-  if (!currentSentence) return kanjiArr
-  for (let chunk of currentSentence.chunks) {
+  if (!currentSentence.value) return kanjiArr
+  for (let chunk of currentSentence.value.chunks) {
     if (isWord(chunk)) {
       for (let kanji of chunk.kanji) {
         kanjiArr.push(kanji)
@@ -86,7 +175,7 @@ const detectKeydown = (e: KeyboardEvent) => {
       kanjiArr.value.shift()
     }
     if (!kanjiArr.value.length) {
-      currentSentence = null
+      sentences.shift()
     }
   }
 }

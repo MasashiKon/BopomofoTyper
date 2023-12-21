@@ -50,7 +50,10 @@ export enum PartOfSpeech {
   pronoun,
   preposition,
   conjunction,
-  auxiliaryWord
+  auxiliaryWord,
+  measure,
+  particle,
+  determiner
 }
 
 export enum MeanOfChunk {

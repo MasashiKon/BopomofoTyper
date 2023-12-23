@@ -122,7 +122,7 @@ const sentence2: Sentence = reactive({
 const sentences: Sentence[] = reactive([sentence1, sentence2])
 
 const currentSentence = computed(() => {
-  if(!sentences.length) return null
+  if (!sentences.length) return null
   return sentences[0]
 })
 
@@ -186,18 +186,19 @@ const detectKeydown = (e: KeyboardEvent) => {
     <div tabindex="0" @keydown="detectKeydown" :class="{ pressed: isPressed }">
       <span>a</span><span>{{ timeCount }}</span>
 
-      <div>
-        <ul v-if="currentSentence">
+      <div class="main-window">
+        <ul v-if="currentSentence" class="sentence-container">
           <li v-for="(chunk, cIndex) in currentSentence.chunks" :key="'chunk' + cIndex">
-            <ul v-if="isChuck(chunk)">
+            <ul v-if="isChuck(chunk)" class="chunk-container">
               <li v-for="(word, wIndex) in chunk.word" :key="'word' + cIndex + wIndex">
                 <ul v-if="isWord(word)">
                   <li
                     v-for="(kanji, kIndex) in word.kanji"
                     :key="'kanji' + cIndex + wIndex + kIndex"
+                    class="kanji-container"
                   >
-                    <span :class="{ pressed: kanji.done }">{{ kanji.display }}</span>
-                    <ul>
+                    <div :class="{ pressed: kanji.done }">{{ kanji.display }}</div>
+                    <ul class="zyuin-container">
                       <li
                         v-for="(zhuyin, zIndex) in kanji.zhuyin"
                         :key="'zhuin' + cIndex + wIndex + kIndex + zIndex"
@@ -208,22 +209,28 @@ const detectKeydown = (e: KeyboardEvent) => {
                     </ul>
                   </li>
                 </ul>
-                <ul v-else>
-                  <span :class="{ pressed: word.done }">{{ word.display }}</span>
-                  <li
-                    v-for="(zhuyin, zIndex) in word.zhuyin"
-                    :key="'zhuin' + cIndex + wIndex + zIndex"
-                    :class="{ pressed: zhuyin.done }"
-                  >
-                    {{ zhuyin.char }}
-                  </li>
+                <ul v-else class="kanji-container">
+                  <div :class="{ pressed: word.done }">{{ word.display }}</div>
+                  <ul class="zyuin-container">
+                    <li
+                      v-for="(zhuyin, zIndex) in word.zhuyin"
+                      :key="'zhuin' + cIndex + wIndex + zIndex"
+                      :class="{ pressed: zhuyin.done }"
+                    >
+                      {{ zhuyin.char }}
+                    </li>
+                  </ul>
                 </ul>
               </li>
             </ul>
-            <ul v-else>
-              <li v-for="(kanji, kIndex) in chunk.kanji" :key="'kanji' + cIndex + kIndex">
-                <span :class="{ pressed: kanji.done }">{{ kanji.display }}</span>
-                <ul>
+            <ul v-else class="chunk-container">
+              <li
+                v-for="(kanji, kIndex) in chunk.kanji"
+                :key="'kanji' + cIndex + kIndex"
+                class="kanji-container"
+              >
+                <div :class="{ pressed: kanji.done }">{{ kanji.display }}</div>
+                <ul class="zyuin-container">
                   <li
                     v-for="(zhuyin, zIndex) in kanji.zhuyin"
                     :key="'zhuin' + cIndex + kIndex + zIndex"
@@ -257,17 +264,41 @@ main {
   margin: 0;
 }
 
-div {
-  /* width: 50vw;
-  height: 50vh; */
+.main-window {
+  width: 960px;
+  height: 540px;
   background-color: aqua;
   margin: 0px;
   padding: 0px;
-  border: black 2px solid;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 div:focus {
   outline: none;
+}
+
+li {
+  list-style: none;
+}
+
+.sentence-container {
+  display: flex;
+  justify-content: space-evenly;
+  .chunk-container {
+    display: flex;
+    justify-content: center;
+    margin: 0 10px;
+    .kanji-container {
+      text-align: center;
+      margin: 0 5px;
+      .zyuin-container {
+        display: flex;
+        justify-content: center;
+      }
+    }
+  }
 }
 
 .pressed {

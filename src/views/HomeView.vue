@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref, reactive, computed } from 'vue'
-import type { Kanji, Word, Chunk, Sentence, ZhuyinChar } from '@/type/types'
-import { Zhuyin, MeanOfChunk, AvailableLang, PartOfSpeech, LocalStrageName } from '@/type/enums'
+import { sentence1, sentence2 } from '../../data/sentences/sentencesDB'
+import type { Kanji, Sentence, ZhuyinChar } from '@/type/types'
+import { AvailableLang, LocalStrageName } from '@/type/enums'
 import getCorrespondingKeys from '@/utils/getCorrespondingKeys'
 import { isChuck, isWord } from '@/utils/verifyTypes'
 import i18next from 'i18next'
@@ -10,128 +11,7 @@ const isPressed = ref(false)
 const isStart = ref(false)
 const lang = ref(AvailableLang.en)
 const timeCount = ref(0)
-const zao: Kanji = reactive({
-  display: '早',
-  zhuyin: [
-    { char: Zhuyin.z, done: false },
-    { char: Zhuyin.ao, done: false },
-    { char: Zhuyin.tone3, done: false }
-  ],
-  done: false
-})
-
-const an: Kanji = reactive({
-  display: '安',
-  zhuyin: [{ char: Zhuyin.an, done: false }],
-  done: false
-})
-
-const zaoAn: Chunk = reactive({
-  display: '早安',
-  word: [zao, an],
-  meanOfChunk: MeanOfChunk.greeting,
-  done: false
-})
-
-const xian: Kanji = reactive({
-  display: '先',
-  zhuyin: [
-    { char: Zhuyin.x, done: false },
-    { char: Zhuyin.i, done: false },
-    { char: Zhuyin.an, done: false }
-  ],
-  done: false
-})
-
-const sheng: Kanji = reactive({
-  display: '生',
-  zhuyin: [
-    { char: Zhuyin.sh, done: false },
-    { char: Zhuyin.eng, done: false }
-  ],
-  done: false
-})
-
-const xianSheng: Word = reactive({
-  display: '先生',
-  kanji: [xian, sheng],
-  partOfSpeech: PartOfSpeech.noun,
-  done: false
-})
-
-const sentence1: Sentence = reactive({
-  chunks: [zaoAn, xianSheng],
-  done: false
-})
-
-const ni: Kanji = reactive({
-  display: '你',
-  zhuyin: [
-    { char: Zhuyin.n, done: false },
-    { char: Zhuyin.i, done: false },
-    { char: Zhuyin.tone3, done: false }
-  ],
-  done: false
-})
-
-const dong: Kanji = reactive({
-  display: '懂',
-  zhuyin: [
-    { char: Zhuyin.d, done: false },
-    { char: Zhuyin.u, done: false },
-    { char: Zhuyin.eng, done: false }
-  ],
-  done: false
-})
-
-const ma: Kanji = reactive({
-  display: '嗎',
-  zhuyin: [
-    { char: Zhuyin.m, done: false },
-    { char: Zhuyin.a, done: false },
-    { char: Zhuyin.tone5, done: false }
-  ],
-  done: false
-})
-
-const que: Kanji = reactive({
-  display: '?',
-  zhuyin: [{ char: Zhuyin.question, done: false }],
-  done: false
-})
-
-const niWord: Word = reactive({
-  display: '你',
-  kanji: [ni],
-  partOfSpeech: PartOfSpeech.noun,
-  done: false
-})
-
-const dongWord: Word = reactive({
-  display: '懂',
-  kanji: [dong],
-  partOfSpeech: PartOfSpeech.verb,
-  done: false
-})
-
-const maWord: Word = reactive({
-  display: '嗎',
-  kanji: [ma],
-  partOfSpeech: PartOfSpeech.particle,
-  done: false
-})
-
-const queWord: Word = reactive({
-  display: '?',
-  kanji: [que],
-  partOfSpeech: PartOfSpeech.symbol,
-  done: false
-})
-
-const sentence2: Sentence = reactive({
-  chunks: [niWord, dongWord, maWord, queWord],
-  done: false
-})
+const currentSentenceId = ref(1)
 
 const sentences: Sentence[] = reactive([sentence1, sentence2])
 
@@ -190,6 +70,7 @@ const detectKeydown = (e: KeyboardEvent) => {
     }
     if (!kanjiArr.value.length) {
       sentences.shift()
+      currentSentenceId.value++
     }
   }
 }
@@ -209,7 +90,8 @@ const changeLanguage = (lang: string) => {
     <div tabindex="0" @keydown="detectKeydown" :class="{ pressed: isPressed }">
       <span>a</span><span>{{ timeCount }}</span>
 
-      <div class="main-window">
+      <div class="main-window main-container">
+        <div>{{ sentences.length > 0 ? $t('sentence_' + currentSentenceId) : '' }}</div>
         <ul v-if="currentSentence" class="sentence-container">
           <li v-for="(chunk, cIndex) in currentSentence.chunks" :key="'chunk' + cIndex">
             <ul v-if="isChuck(chunk)" class="chunk-container">
@@ -296,6 +178,12 @@ main {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+.main-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
 }
 
 div:focus {

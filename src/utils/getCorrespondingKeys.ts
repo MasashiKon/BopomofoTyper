@@ -1,4 +1,4 @@
-import { Zhuyin, AvailableLang } from "@/type/enums"
+import { Zhuyin, AvailableLang } from '@/type/enums'
 
 export default (zhuyin: Zhuyin, lang: AvailableLang) => {
   switch (lang) {
@@ -86,6 +86,10 @@ export default (zhuyin: Zhuyin, lang: AvailableLang) => {
           return '/'
         case Zhuyin.er:
           return '-'
+        case Zhuyin.exclamation:
+          return '!'
+        case Zhuyin.question:
+          return '?'
         default:
           return null
       }
@@ -173,6 +177,10 @@ export default (zhuyin: Zhuyin, lang: AvailableLang) => {
           return '/'
         case Zhuyin.er:
           return '-'
+        case Zhuyin.exclamation:
+          return '!'
+        case Zhuyin.question:
+          return '?'
         default:
           return null
       }

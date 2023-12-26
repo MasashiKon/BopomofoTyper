@@ -1,5 +1,17 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router'
+import { onMounted } from 'vue'
+import i18next from 'i18next'
+
+import { LocalStrageName } from './type/enums';
+
+onMounted(() => {
+  if (localStorage.getItem(LocalStrageName.userLang) === null) {
+    i18next.changeLanguage(navigator.language)
+  } else {
+    i18next.changeLanguage(localStorage.getItem(LocalStrageName.userLang) as string)
+  }
+})
 </script>
 
 <template>

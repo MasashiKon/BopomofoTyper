@@ -39,7 +39,9 @@ export enum Zhuyin {
   tone2 = 'ˊ',
   tone3 = 'ˇ',
   tone4 = 'ˋ',
-  tone5 = '˙'
+  tone5 = '˙',
+  exclamation = '!',
+  question = '?'
 }
 
 export enum PartOfSpeech {
@@ -53,7 +55,8 @@ export enum PartOfSpeech {
   auxiliaryWord,
   measure,
   particle,
-  determiner
+  determiner,
+  symbol
 }
 
 export enum MeanOfChunk {
@@ -65,4 +68,8 @@ export enum MeanOfChunk {
 export enum AvailableLang {
   en,
   jp
+}
+
+export enum LocalStrageName {
+  userLang = 'user-lang'
 }

@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { ref, reactive, computed } from 'vue'
 import type { Kanji, Word, Chunk, Sentence, ZhuyinChar } from '@/type/types'
-import { Zhuyin, MeanOfChunk, AvailableLang, PartOfSpeech } from '@/type/enums'
+import { Zhuyin, MeanOfChunk, AvailableLang, PartOfSpeech, LocalStrageName } from '@/type/enums'
 import getCorrespondingKeys from '@/utils/getCorrespondingKeys'
 import { isChuck, isWord } from '@/utils/verifyTypes'
+import i18next from 'i18next'
 
 const isPressed = ref(false)
 const isStart = ref(false)
@@ -93,6 +94,12 @@ const ma: Kanji = reactive({
   done: false
 })
 
+const que: Kanji = reactive({
+  display: '?',
+  zhuyin: [{ char: Zhuyin.question, done: false }],
+  done: false
+})
+
 const niWord: Word = reactive({
   display: '你',
   kanji: [ni],
@@ -114,8 +121,15 @@ const maWord: Word = reactive({
   done: false
 })
 
+const queWord: Word = reactive({
+  display: '?',
+  kanji: [que],
+  partOfSpeech: PartOfSpeech.symbol,
+  done: false
+})
+
 const sentence2: Sentence = reactive({
-  chunks: [niWord, dongWord, maWord],
+  chunks: [niWord, dongWord, maWord, queWord],
   done: false
 })
 
@@ -179,10 +193,19 @@ const detectKeydown = (e: KeyboardEvent) => {
     }
   }
 }
+
+const changeLanguage = (lang: string) => {
+  i18next.changeLanguage(lang)
+  localStorage.setItem(LocalStrageName.userLang, lang)
+}
 </script>
 
 <template>
   <main>
+    <h1>Now language is {{ $t('welcome') }}</h1>
+    <h2></h2>
+    <button v-on:click="changeLanguage('en')">English</button>
+    <button v-on:click="changeLanguage('ja')">Japanese</button>
     <div tabindex="0" @keydown="detectKeydown" :class="{ pressed: isPressed }">
       <span>a</span><span>{{ timeCount }}</span>
 

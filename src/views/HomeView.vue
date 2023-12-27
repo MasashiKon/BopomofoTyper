@@ -71,6 +71,9 @@ const detectKeydown = (e: KeyboardEvent) => {
     if (!kanjiArr.value.length) {
       sentences.shift()
       currentSentenceId.value++
+      if (!sentences.length) {
+        isStart.value = false
+      }
     }
   }
 }
@@ -83,72 +86,73 @@ const changeLanguage = (lang: string) => {
 
 <template>
   <main>
-    <h1>Now language is {{ $t('welcome') }}</h1>
-    <h2></h2>
+    <div>Translation: {{ $t('welcome') }}</div>
     <button v-on:click="changeLanguage('en')">English</button>
     <button v-on:click="changeLanguage('ja')">Japanese</button>
     <div tabindex="0" @keydown="detectKeydown" :class="{ pressed: isPressed }">
-      <span>a</span><span>{{ timeCount }}</span>
-
-      <div class="main-window main-container">
-        <div>{{ sentences.length > 0 ? $t('sentence_' + currentSentenceId) : '' }}</div>
-        <ul v-if="currentSentence" class="sentence-container">
-          <li v-for="(chunk, cIndex) in currentSentence.chunks" :key="'chunk' + cIndex">
-            <ul v-if="isChuck(chunk)" class="chunk-container">
-              <li v-for="(word, wIndex) in chunk.word" :key="'word' + cIndex + wIndex">
-                <ul v-if="isWord(word)">
-                  <li
-                    v-for="(kanji, kIndex) in word.kanji"
-                    :key="'kanji' + cIndex + wIndex + kIndex"
-                    class="kanji-container"
-                  >
-                    <div :class="{ pressed: kanji.done }">{{ kanji.display }}</div>
+      <span>Time: {{ timeCount }}</span>
+      <div class="main-window">
+        <div class="main-container" v-if="isStart">
+          <div>{{ sentences.length > 0 ? $t('sentence_' + currentSentenceId) : '' }}</div>
+          <ul v-if="currentSentence" class="sentence-container">
+            <li v-for="(chunk, cIndex) in currentSentence.chunks" :key="'chunk' + cIndex">
+              <ul v-if="isChuck(chunk)" class="chunk-container">
+                <li v-for="(word, wIndex) in chunk.word" :key="'word' + cIndex + wIndex">
+                  <ul v-if="isWord(word)">
+                    <li
+                      v-for="(kanji, kIndex) in word.kanji"
+                      :key="'kanji' + cIndex + wIndex + kIndex"
+                      class="kanji-container"
+                    >
+                      <div :class="{ pressed: kanji.done }">{{ kanji.display }}</div>
+                      <ul class="zyuin-container">
+                        <li
+                          v-for="(zhuyin, zIndex) in kanji.zhuyin"
+                          :key="'zhuin' + cIndex + wIndex + kIndex + zIndex"
+                          :class="{ pressed: zhuyin.done }"
+                        >
+                          {{ zhuyin.char }}
+                        </li>
+                      </ul>
+                    </li>
+                  </ul>
+                  <ul v-else class="kanji-container">
+                    <div :class="{ pressed: word.done }">{{ word.display }}</div>
                     <ul class="zyuin-container">
                       <li
-                        v-for="(zhuyin, zIndex) in kanji.zhuyin"
-                        :key="'zhuin' + cIndex + wIndex + kIndex + zIndex"
+                        v-for="(zhuyin, zIndex) in word.zhuyin"
+                        :key="'zhuin' + cIndex + wIndex + zIndex"
                         :class="{ pressed: zhuyin.done }"
                       >
                         {{ zhuyin.char }}
                       </li>
                     </ul>
-                  </li>
-                </ul>
-                <ul v-else class="kanji-container">
-                  <div :class="{ pressed: word.done }">{{ word.display }}</div>
+                  </ul>
+                </li>
+              </ul>
+              <ul v-else class="chunk-container">
+                <li
+                  v-for="(kanji, kIndex) in chunk.kanji"
+                  :key="'kanji' + cIndex + kIndex"
+                  class="kanji-container"
+                >
+                  <div :class="{ pressed: kanji.done }">{{ kanji.display }}</div>
                   <ul class="zyuin-container">
                     <li
-                      v-for="(zhuyin, zIndex) in word.zhuyin"
-                      :key="'zhuin' + cIndex + wIndex + zIndex"
+                      v-for="(zhuyin, zIndex) in kanji.zhuyin"
+                      :key="'zhuin' + cIndex + kIndex + zIndex"
                       :class="{ pressed: zhuyin.done }"
                     >
                       {{ zhuyin.char }}
                     </li>
                   </ul>
-                </ul>
-              </li>
-            </ul>
-            <ul v-else class="chunk-container">
-              <li
-                v-for="(kanji, kIndex) in chunk.kanji"
-                :key="'kanji' + cIndex + kIndex"
-                class="kanji-container"
-              >
-                <div :class="{ pressed: kanji.done }">{{ kanji.display }}</div>
-                <ul class="zyuin-container">
-                  <li
-                    v-for="(zhuyin, zIndex) in kanji.zhuyin"
-                    :key="'zhuin' + cIndex + kIndex + zIndex"
-                    :class="{ pressed: zhuyin.done }"
-                  >
-                    {{ zhuyin.char }}
-                  </li>
-                </ul>
-              </li>
-            </ul>
-          </li>
-        </ul>
-        <div v-else>Loading</div>
+                </li>
+              </ul>
+            </li>
+          </ul>
+          <div v-else>Loading</div>
+        </div>
+        <div class="main-container" v-else>Bopomofo Typer</div>
       </div>
     </div>
     <button @click="toggleIsStart">{{ isStart ? 'Stop' : 'Start' }}</button>
@@ -181,9 +185,11 @@ main {
 }
 
 .main-container {
+  height: 50%;
   display: flex;
   flex-direction: column;
   justify-content: space-evenly;
+  align-items: center;
 }
 
 div:focus {

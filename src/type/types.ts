@@ -19,14 +19,12 @@ export type Word = {
   display: string
   kanji: Kanji[]
   partOfSpeech: PartOfSpeech
-  done: boolean
 }
 
 export type Chunk = {
   display: string
   word: (Word | Kanji)[]
   meanOfChunk: MeanOfChunk
-  done: boolean
 }
 
 export type Sentence = {

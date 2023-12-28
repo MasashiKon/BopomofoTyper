@@ -41,28 +41,32 @@ export enum Zhuyin {
   tone4 = 'ˋ',
   tone5 = '˙',
   exclamation = '!',
-  question = '?'
+  question = '?',
+  error = 'error'
 }
 
 export enum PartOfSpeech {
-  noun,
-  verb,
-  adjective,
-  adverb,
-  pronoun,
-  preposition,
-  conjunction,
-  auxiliaryWord,
-  measure,
-  particle,
-  determiner,
-  symbol
+  noun = 'noun',
+  verb = 'verb',
+  adjective = 'adjective',
+  adverb = 'adverb',
+  pronoun = 'pronoun',
+  preposition = 'preposition',
+  conjunction = 'conjunction',
+  auxiliaryWord = 'auxiliaryWord',
+  measure = 'measure',
+  particle = 'particle',
+  determiner = 'determiner',
+  symbol = 'symbol'
 }
 
 export enum MeanOfChunk {
-  noun,
-  verv,
-  greeting
+  noun = 'noun',
+  verv = 'verv',
+  greeting = 'greeting',
+  completeSentence = 'completeSentence',
+  reason = 'reason',
+  question = 'question'
 }
 
 export enum AvailableLang {

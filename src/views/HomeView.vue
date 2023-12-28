@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { ref, reactive, computed } from 'vue'
-import { sentence1, sentence2 } from '../../data/sentences/sentencesDB'
-import type { Kanji, Sentence, ZhuyinChar } from '@/type/types'
+import axios from 'axios'
+import type { Kanji, Sentence, ZhuyinChar, Chunk, Word } from '@/type/types'
 import { AvailableLang, LocalStrageName } from '@/type/enums'
 import getCorrespondingKeys from '@/utils/getCorrespondingKeys'
 import { isChuck, isWord } from '@/utils/verifyTypes'
+import convertZhuyin from '@/utils/convertZhuyin'
 import i18next from 'i18next'
 
 const isPressed = ref(false)
@@ -13,7 +14,7 @@ const lang = ref(AvailableLang.en)
 const timeCount = ref(0)
 const currentSentenceId = ref(1)
 
-const sentences: Sentence[] = reactive([sentence1, sentence2])
+const sentences: Sentence[] = reactive([])
 
 const currentSentence = computed(() => {
   if (!sentences.length) return null
@@ -45,12 +46,279 @@ const kanjiArr = computed((): Kanji[] => {
 
 let interval: number | null
 
-const toggleIsStart = () => {
+const toggleIsStart = async () => {
   if (isStart.value) {
     if (!interval) return
     clearInterval(interval)
     interval = null
   } else {
+    const res = await axios.post(
+      import.meta.env.VITE_DB_URL,
+      {
+        query: `{
+  sentencesCollection(filter: {or: [{id: {eq: 1}}, {id: {eq: 2}}]}) {
+    edges {
+      node {
+        id
+        display
+        chunks
+        done
+        sentences_chunksCollection {
+          edges {
+            node {
+              chunks {
+                display
+                words
+                meanOfChunk
+                chunks_wordsCollection {
+                  edges {
+                    node {
+                      words {
+                        display
+                        kanji
+                        partOfSpeech
+                        words_kanjiCollection {
+                          edges {
+                            node {
+                              kanji {
+                                display
+                                zhuyin
+                                done
+                                kanji_zhuyinCollection {
+                                  edges {
+                                    node {
+                                      zhuyin_zhuyin
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+                chunks_kanjiCollection {
+                  edges {
+                    node {
+                      kanji {
+                        display
+                        zhuyin
+                        done
+                        kanji_zhuyinCollection {
+                          edges {
+                            node {
+                              zhuyin_zhuyin
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        sentences_wordsCollection {
+          edges {
+            node {
+              words {
+                display
+                kanji
+                partOfSpeech
+                words_kanjiCollection {
+                  edges {
+                    node {
+                      kanji {
+                        display
+                        zhuyin
+                        done
+                        kanji_zhuyinCollection {
+                          edges {
+                            node {
+                              zhuyin_zhuyin
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}`
+      },
+      {
+        headers: {
+          apikey: import.meta.env.VITE_DB_APIKEY
+        }
+      }
+    )
+
+    for (let sentenceNode of res.data.data.sentencesCollection.edges) {
+      const sentence = sentenceNode.node
+      const sentenceContainer: Sentence = {
+        id: Number(sentence.id),
+        chunks: [],
+        done: false
+      }
+
+      for (let chunkLiteral of sentence.chunks) {
+        chunkSearch: for (let chunkNode of sentence.sentences_chunksCollection.edges) {
+          const chunk = chunkNode.node.chunks
+          if (chunk.display === chunkLiteral) {
+            const chunkContainer: Chunk = {
+              display: chunk.display,
+              word: [],
+              meanOfChunk: chunk.meanOfChunk
+            }
+
+            for (let chunkWordLiteral of chunk.words) {
+              wordSearch: for (let kanjiNode of chunk.chunks_kanjiCollection.edges) {
+                const kanji = kanjiNode.node.kanji
+                if (kanji.display === chunkWordLiteral) {
+                  const kanjiContainer: Kanji = {
+                    display: kanji.display,
+                    done: false,
+                    zhuyin: []
+                  }
+
+                  for (let zhuyinLiteral of kanji.zhuyin) {
+                    for (let zhuyinNode of kanji.kanji_zhuyinCollection.edges) {
+                      const zhuyin = zhuyinNode.node.zhuyin_zhuyin
+                      if (zhuyin === zhuyinLiteral) {
+                        const zhuyinContainer: ZhuyinChar = {
+                          char: convertZhuyin(zhuyin),
+                          done: false
+                        }
+                        kanjiContainer.zhuyin.push(zhuyinContainer)
+                        break
+                      }
+                    }
+                  }
+
+                  chunkContainer.word.push(kanjiContainer)
+
+                  break wordSearch
+                }
+              }
+              wordSearch: for (let wordNode of chunk.chunks_wordsCollection.edges) {
+                const word = wordNode.node.word
+                if (word.display === chunkWordLiteral) {
+                  const wordContainer: Word = {
+                    display: word.display,
+                    kanji: [],
+                    partOfSpeech: word.partOfSpeech
+                  }
+
+                  for (let kanjiLiteral of word.kanji) {
+                    for (let kanjiNode of word.words_kanjiCollection.edges) {
+                      const kanji = kanjiNode.node.kanji
+                      if (kanji.display === kanjiLiteral) {
+                        const kanjiContainer: Kanji = {
+                          display: kanji.display,
+                          done: false,
+                          zhuyin: []
+                        }
+
+                        for (let zhuyinLiteral of kanji.zhuyin) {
+                          for (let zhuyinNode of kanji.kanji_zhuyinCollection.edges) {
+                            const zhuyin = zhuyinNode.node.zhuyin_zhuyin
+                            if (zhuyin === zhuyinLiteral) {
+                              const zhuyinContainer: ZhuyinChar = {
+                                char: convertZhuyin(zhuyin),
+                                done: false
+                              }
+                              kanjiContainer.zhuyin.push(zhuyinContainer)
+                              break
+                            }
+                          }
+                        }
+
+                        wordContainer.kanji.push(kanjiContainer)
+
+                        break
+                      }
+                    }
+                  }
+
+                  chunkContainer.word.push(wordContainer)
+
+                  break wordSearch
+                }
+              }
+            }
+
+            sentenceContainer.chunks.push(chunkContainer)
+
+            break chunkSearch
+          }
+          // for (let wordNode of chunkNode.node.chunks.chunks_wordsCollection.edges) {
+          //   console.log(3)
+
+          //   if (wordNode.node.words.display === chunkLiteral) {
+          //     console.log(chunkLiteral)
+          //     break chunkSearch
+          //   }
+          // }
+        }
+        chunkSearch: for (let wordNode of sentence.sentences_wordsCollection.edges) {
+          const word = wordNode.node.words
+          if (word.display === chunkLiteral) {
+            const wordContainer: Word = {
+              display: word.display,
+              kanji: [],
+              partOfSpeech: word.partOfSpeech
+            }
+
+            for (let kanjiLiteral of word.kanji) {
+              for (let kanjiNode of word.words_kanjiCollection.edges) {
+                const kanji = kanjiNode.node.kanji
+                if (kanji.display === kanjiLiteral) {
+                  const kanjiContainer: Kanji = {
+                    display: kanji.display,
+                    done: false,
+                    zhuyin: []
+                  }
+
+                  for (let zhuyinLiteral of kanji.zhuyin) {
+                    for (let zhuyinNode of kanji.kanji_zhuyinCollection.edges) {
+                      const zhuyin = zhuyinNode.node.zhuyin_zhuyin
+                      if (zhuyin === zhuyinLiteral) {
+                        const zhuyinContainer: ZhuyinChar = {
+                          char: convertZhuyin(zhuyin),
+                          done: false
+                        }
+                        kanjiContainer.zhuyin.push(zhuyinContainer)
+                        break
+                      }
+                    }
+                  }
+
+                  wordContainer.kanji.push(kanjiContainer)
+
+                  break
+                }
+              }
+            }
+
+            sentenceContainer.chunks.push(wordContainer)
+
+            break chunkSearch
+          }
+        }
+      }
+
+      sentences.push(sentenceContainer)
+    }
+
     interval = setInterval(() => {
       timeCount.value = timeCount.value + 1
     }, 1000)

@@ -260,14 +260,6 @@ const toggleIsStart = async () => {
 
             break chunkSearch
           }
-          // for (let wordNode of chunkNode.node.chunks.chunks_wordsCollection.edges) {
-          //   console.log(3)
-
-          //   if (wordNode.node.words.display === chunkLiteral) {
-          //     console.log(chunkLiteral)
-          //     break chunkSearch
-          //   }
-          // }
         }
         chunkSearch: for (let wordNode of sentence.sentences_wordsCollection.edges) {
           const word = wordNode.node.words
@@ -341,6 +333,8 @@ const detectKeydown = (e: KeyboardEvent) => {
       currentSentenceId.value++
       if (!sentences.length) {
         isStart.value = false
+        if(!interval) return
+        clearInterval(interval)
       }
     }
   }

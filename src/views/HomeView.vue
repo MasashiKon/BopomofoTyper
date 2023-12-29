@@ -1,19 +1,19 @@
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue'
-import axios from 'axios'
+import { ref, reactive, computed, onMounted } from 'vue'
 import type { Kanji, Sentence, ZhuyinChar, Chunk, Word } from '@/type/types'
 import { AvailableLang, LocalStrageName } from '@/type/enums'
 import getCorrespondingKeys from '@/utils/getCorrespondingKeys'
 import { isChuck, isWord } from '@/utils/verifyTypes'
-import convertZhuyin from '@/utils/convertZhuyin'
 import fetchSentences from '@/utils/fetchSentences'
 import i18next from 'i18next'
 
 const isPressed = ref(false)
+const isShift = ref(false)
 const isStart = ref(false)
 const lang = ref(AvailableLang.en)
 const timeCount = ref(0)
 const currentSentenceId = ref(1)
+let keys: Element[]
 
 const sentences: Sentence[] = reactive([])
 
@@ -62,8 +62,30 @@ const toggleIsStart = async () => {
   isStart.value = !isStart.value
 }
 
+onMounted(() => {
+  keys = [...document.getElementsByClassName('keyboard-key')]
+})
+
+const findTargetKey = (arr: Element[], e: KeyboardEvent) => {
+  return arr.find((key: Element) => {
+    return (
+      key.firstChild?.textContent === e.key.toUpperCase() ||
+      (e.key === '?' && key.lastChild?.textContent === '？') ||
+      (e.key === '!' && key.lastChild?.textContent === '！')
+    )
+  })
+}
+
 const detectKeydown = (e: KeyboardEvent) => {
   if (!kanjiArr.value || !kanjiArr.value.length) return
+  if (e.key === 'Shift') {
+    isShift.value = true
+  } else {
+    const targetKey = findTargetKey(keys, e)
+    if (targetKey) {
+      targetKey.classList.add('key-pressed')
+    }
+  }
   const answer: ZhuyinChar | undefined = kanjiArr.value[0].zhuyin.find((zhuyin) => !zhuyin.done)
   if (!answer) return
   if (e.key === getCorrespondingKeys(answer.char, lang.value)) {
@@ -84,6 +106,17 @@ const detectKeydown = (e: KeyboardEvent) => {
   }
 }
 
+const detectKeyup = (e: KeyboardEvent) => {
+  if (e.key === 'Shift') {
+    isShift.value = false
+  } else {
+    const targetKey = findTargetKey(keys, e)
+    if (targetKey) {
+      targetKey.classList.remove('key-pressed')
+    }
+  }
+}
+
 const changeLanguage = (lang: string) => {
   i18next.changeLanguage(lang)
   localStorage.setItem(LocalStrageName.userLang, lang)
@@ -95,7 +128,7 @@ const changeLanguage = (lang: string) => {
     <div>Translation: {{ $t('welcome') }}</div>
     <button v-on:click="changeLanguage('en')">English</button>
     <button v-on:click="changeLanguage('ja')">Japanese</button>
-    <div tabindex="0" @keydown="detectKeydown" :class="{ pressed: isPressed }">
+    <div tabindex="0" @keydown="detectKeydown" @keyup="detectKeyup" :class="{ pressed: isPressed }">
       <span>Time: {{ timeCount }}</span>
       <div class="main-window">
         <div class="main-container" v-if="isStart">
@@ -161,6 +194,185 @@ const changeLanguage = (lang: string) => {
         <div class="main-container" v-else>Bopomofo Typer</div>
       </div>
     </div>
+    <div class="keyboard-container">
+      <div class="keyboard">
+        <div class="keyboard-row">
+          <div class="keyboard-key">
+            <div>1</div>
+            <div v-if="!isShift">ㄅ</div>
+            <div v-else>！</div>
+          </div>
+          <div class="keyboard-key">
+            <div>2</div>
+            <div v-if="!isShift">ㄉ</div>
+          </div>
+          <div class="keyboard-key">
+            <div>3</div>
+            <div v-if="!isShift">ˇ</div>
+          </div>
+          <div class="keyboard-key">
+            <div>4</div>
+            <div v-if="!isShift">ˋ</div>
+          </div>
+          <div class="keyboard-key">
+            <div>5</div>
+            <div v-if="!isShift">ㄓ</div>
+          </div>
+          <div class="keyboard-key">
+            <div>6</div>
+            <div v-if="!isShift">ˊ</div>
+          </div>
+          <div class="keyboard-key">
+            <div>7</div>
+            <div v-if="!isShift">˙</div>
+          </div>
+          <div class="keyboard-key">
+            <div>8</div>
+            <div v-if="!isShift">ㄚ</div>
+          </div>
+          <div class="keyboard-key">
+            <div>9</div>
+            <div v-if="!isShift">ㄞ</div>
+          </div>
+          <div class="keyboard-key">
+            <div>0</div>
+            <div v-if="!isShift">ㄢ</div>
+          </div>
+          <div class="keyboard-key">
+            <div>-</div>
+            <div v-if="!isShift">ㄦ</div>
+          </div>
+        </div>
+        <div class="keyboard-row">
+          <div class="keyboard-key">
+            <div>Q</div>
+            <div v-if="!isShift">ㄆ</div>
+          </div>
+          <div class="keyboard-key">
+            <div>W</div>
+            <div v-if="!isShift">ㄊ</div>
+          </div>
+          <div class="keyboard-key">
+            <div>E</div>
+            <div v-if="!isShift">ㄍ</div>
+          </div>
+          <div class="keyboard-key">
+            <div>R</div>
+            <div v-if="!isShift">ㄐ</div>
+          </div>
+          <div class="keyboard-key">
+            <div>T</div>
+            <div v-if="!isShift">ㄔ</div>
+          </div>
+          <div class="keyboard-key">
+            <div>Y</div>
+            <div v-if="!isShift">ㄗ</div>
+          </div>
+          <div class="keyboard-key">
+            <div>U</div>
+            <div v-if="!isShift">ㄧ</div>
+          </div>
+          <div class="keyboard-key">
+            <div>I</div>
+            <div v-if="!isShift">ㄛ</div>
+          </div>
+          <div class="keyboard-key">
+            <div>O</div>
+            <div v-if="!isShift">ㄟ</div>
+          </div>
+          <div class="keyboard-key">
+            <div>P</div>
+            <div v-if="!isShift">ㄣ</div>
+          </div>
+        </div>
+        <div class="keyboard-row">
+          <div class="keyboard-key">
+            <div>A</div>
+            <div v-if="!isShift">ㄇ</div>
+          </div>
+          <div class="keyboard-key">
+            <div>S</div>
+            <div v-if="!isShift">ㄋ</div>
+          </div>
+          <div class="keyboard-key">
+            <div>D</div>
+            <div v-if="!isShift">ㄎ</div>
+          </div>
+          <div class="keyboard-key">
+            <div>F</div>
+            <div v-if="!isShift">ㄑ</div>
+          </div>
+          <div class="keyboard-key">
+            <div>G</div>
+            <div v-if="!isShift">ㄕ</div>
+          </div>
+          <div class="keyboard-key">
+            <div>H</div>
+            <div v-if="!isShift">ㄘ</div>
+          </div>
+          <div class="keyboard-key">
+            <div>J</div>
+            <div v-if="!isShift">ㄨ</div>
+          </div>
+          <div class="keyboard-key">
+            <div>K</div>
+            <div v-if="!isShift">ㄜ</div>
+          </div>
+          <div class="keyboard-key">
+            <div>L</div>
+            <div v-if="!isShift">ㄠ</div>
+          </div>
+          <div class="keyboard-key">
+            <div>;</div>
+            <div v-if="!isShift">ㄤ</div>
+          </div>
+        </div>
+        <div class="keyboard-row">
+          <div class="keyboard-key">
+            <div>Z</div>
+            <div v-if="!isShift">ㄈ</div>
+          </div>
+          <div class="keyboard-key">
+            <div>X</div>
+            <div v-if="!isShift">ㄌ</div>
+          </div>
+          <div class="keyboard-key">
+            <div>C</div>
+            <div v-if="!isShift">ㄏ</div>
+          </div>
+          <div class="keyboard-key">
+            <div>V</div>
+            <div v-if="!isShift">ㄒ</div>
+          </div>
+          <div class="keyboard-key">
+            <div>B</div>
+            <div v-if="!isShift">ㄖ</div>
+          </div>
+          <div class="keyboard-key">
+            <div>N</div>
+            <div v-if="!isShift">ㄙ</div>
+          </div>
+          <div class="keyboard-key">
+            <div>M</div>
+            <div v-if="!isShift">ㄩ</div>
+          </div>
+          <div class="keyboard-key">
+            <div>,</div>
+            <div v-if="!isShift">ㄝ</div>
+          </div>
+          <div class="keyboard-key">
+            <div>.</div>
+            <div v-if="!isShift">ㄡ</div>
+          </div>
+          <div class="keyboard-key">
+            <div>/</div>
+            <div v-if="!isShift">ㄥ</div>
+            <div v-else>？</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <button @click="toggleIsStart">{{ isStart ? 'Stop' : 'Start' }}</button>
   </main>
 </template>
@@ -180,8 +392,8 @@ main {
 }
 
 .main-window {
-  width: 960px;
-  height: 540px;
+  width: 640px;
+  height: 360px;
   background-color: aqua;
   margin: 0px;
   padding: 0px;
@@ -226,5 +438,51 @@ li {
 
 .pressed {
   color: red;
+}
+
+.keyboard-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: chartreuse;
+  width: 640px;
+  height: 200px;
+}
+
+.keyboard {
+  --key-size: 40px;
+  --row-gap: 10px;
+  --row-base-margin: 0px;
+  .keyboard-row {
+    display: flex;
+    padding: 2px 0;
+    .keyboard-key {
+      width: var(--key-size);
+      height: var(--key-size);
+      background-color: whitesmoke;
+      border: 1px solid black;
+      text-align: center;
+      margin: 0 2px;
+    }
+    .key-pressed {
+      background-color: rgba(245, 245, 245, 0.283);
+    }
+  }
+
+  .keyboard-row:nth-child(1) {
+    margin-left: calc(var(--row-base-margin) + var(--row-gap));
+  }
+
+  .keyboard-row:nth-child(2) {
+    margin-left: calc(var(--row-base-margin) + (var(--row-gap) * 2));
+  }
+
+  .keyboard-row:nth-child(3) {
+    margin-left: calc(var(--row-base-margin) + (var(--row-gap) * 3));
+  }
+
+  .keyboard-row:nth-child(4) {
+    margin-left: calc(var(--row-base-margin) + (var(--row-gap) * 4));
+  }
 }
 </style>

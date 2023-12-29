@@ -17,15 +17,15 @@ i18next
         translation: {
           // here we will place our translations...
           welcome: 'English',
-          sentence_1: 'Good morning, teacher.',
-          sentence_2: 'Do you understand?'
+          sentence_1: '',
+          sentence_2: ''
         }
       },
       ja: {
         translation: {
           welcome: 'Japanese',
-          sentence_1: 'おはようございます、先生。',
-          sentence_2: '理解しましたか？'
+          sentence_1: '',
+          sentence_2: ''
         }
       }
     }

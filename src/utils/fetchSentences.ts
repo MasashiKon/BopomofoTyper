@@ -1,4 +1,5 @@
 import axios from 'axios'
+import i18next from 'i18next'
 import convertZhuyin from './convertZhuyin'
 import type { Sentence, Chunk, Word, Kanji, ZhuyinChar } from '@/type/types'
 
@@ -113,7 +114,7 @@ sentencesCollection(filter: {or: [{id: {eq: 1}}, {id: {eq: 2}}]}) {
     }
   )
 
-  for (const sentenceNode of res.data.data.sentencesCollection.edges) {
+  for (const [index, sentenceNode] of res.data.data.sentencesCollection.edges.entries()) {
     const sentence = sentenceNode.node
     const sentenceContainer: Sentence = {
       id: Number(sentence.id),
@@ -261,4 +262,14 @@ sentencesCollection(filter: {or: [{id: {eq: 1}}, {id: {eq: 2}}]}) {
 
     sentences.push(sentenceContainer)
   }
+
+  i18next.addResourceBundle('en', 'translation', {
+    [`sentence_${1}`]: 'Good morning, teacher.',
+    sentence_2: 'Do you understand?'
+  })
+
+  i18next.addResourceBundle('ja', 'translation', {
+    sentence_1: 'おはようございます、先生。',
+    sentence_2: '理解しましたか？'
+  })
 }

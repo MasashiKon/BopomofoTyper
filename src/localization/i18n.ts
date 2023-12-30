@@ -18,16 +18,16 @@ i18next
           // here we will place our translations...
           currentLang: 'English',
           translation: 'Translation',
-          sentence_1: '',
-          sentence_2: ''
+          easy: 'Easy',
+          hard: 'Hard'
         }
       },
       ja: {
         translation: {
           currentLang: '日本語',
           translation: '翻訳',
-          sentence_1: '',
-          sentence_2: ''
+          easy: 'かんたん',
+          hard: 'むずかしい'
         }
       }
     }

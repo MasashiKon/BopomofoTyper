@@ -75,5 +75,11 @@ export enum AvailableLang {
 }
 
 export enum LocalStrageName {
-  userLang = 'user-lang'
+  userLang = 'user-lang',
+  level = 'level'
+}
+
+export enum Level {
+  easy = 'easy',
+  hard = 'hard'
 }

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
-import type { Kanji, Sentence, ZhuyinChar, Chunk, Word } from '@/type/types'
+import type { Kanji, Sentence, ZhuyinChar } from '@/type/types'
 import { AvailableLang, LocalStrageName } from '@/type/enums'
 import getCorrespondingKeys from '@/utils/getCorrespondingKeys'
 import { isChuck, isWord } from '@/utils/verifyTypes'
@@ -99,6 +99,7 @@ const detectKeydown = (e: KeyboardEvent) => {
       currentSentenceId.value++
       if (!sentences.length) {
         isStart.value = false
+        currentSentenceId.value = 1
         if (!interval) return
         clearInterval(interval)
       }
@@ -125,7 +126,7 @@ const changeLanguage = (lang: string) => {
 
 <template>
   <main>
-    <div>Translation: {{ $t('welcome') }}</div>
+    <div style="height: 30px;">{{ $t('translation') }}: {{ $t('currentLang') }}</div>
     <button v-on:click="changeLanguage('en')">English</button>
     <button v-on:click="changeLanguage('ja')">Japanese</button>
     <div tabindex="0" @keydown="detectKeydown" @keyup="detectKeyup" :class="{ pressed: isPressed }">
@@ -451,8 +452,8 @@ li {
 
 .keyboard {
   --key-size: 40px;
-  --row-gap: 10px;
-  --row-base-margin: 0px;
+  --row-gap: 15px;
+  --row-base-margin: -15px;
   .keyboard-row {
     display: flex;
     padding: 2px 0;

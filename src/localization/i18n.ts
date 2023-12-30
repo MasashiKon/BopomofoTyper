@@ -16,14 +16,16 @@ i18next
       en: {
         translation: {
           // here we will place our translations...
-          welcome: 'English',
+          currentLang: 'English',
+          translation: 'Translation',
           sentence_1: '',
           sentence_2: ''
         }
       },
       ja: {
         translation: {
-          welcome: 'Japanese',
+          currentLang: '日本語',
+          translation: '翻訳',
           sentence_1: '',
           sentence_2: ''
         }

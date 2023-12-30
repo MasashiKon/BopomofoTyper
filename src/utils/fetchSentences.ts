@@ -15,6 +15,8 @@ sentencesCollection(filter: {or: [{id: {eq: 1}}, {id: {eq: 2}}]}) {
       display
       chunks
       done
+      translation_en
+      translation_ja
       sentences_chunksCollection {
         edges {
           node {
@@ -261,15 +263,13 @@ sentencesCollection(filter: {or: [{id: {eq: 1}}, {id: {eq: 2}}]}) {
     }
 
     sentences.push(sentenceContainer)
+
+    i18next.addResourceBundle('en', 'translation', {
+      [`sentence_${index + 1}`]: sentence.translation_en
+    })
+  
+    i18next.addResourceBundle('ja', 'translation', {
+      [`sentence_${index + 1}`]: sentence.translation_ja,
+    })
   }
-
-  i18next.addResourceBundle('en', 'translation', {
-    [`sentence_${1}`]: 'Good morning, teacher.',
-    sentence_2: 'Do you understand?'
-  })
-
-  i18next.addResourceBundle('ja', 'translation', {
-    sentence_1: 'おはようございます、先生。',
-    sentence_2: '理解しましたか？'
-  })
 }

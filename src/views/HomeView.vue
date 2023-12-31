@@ -13,12 +13,28 @@ const isShift = ref(false)
 const isStart = ref(false)
 const lang = ref(AvailableLang.en)
 const timeCount = ref(0)
+const frameCount = ref(0)
+const timeLimit = ref(100)
 const currentSentenceId = ref(1)
 const level = ref(localStorage.getItem(LocalStrageName.level) || Level.easy)
 
 let keys: Element[]
 
 const sentences: Sentence[] = reactive([])
+
+const timeLimitStr = computed(() => {
+  return timeLimit.value + '%'
+})
+
+const timeBarColor = computed(() => {
+  if (timeLimit.value > 20) {
+    return 'green'
+  } else if (timeLimit.value > 5) {
+    return 'yellow'
+  } else {
+    return 'red'
+  }
+})
 
 const currentSentence = computed(() => {
   if (!sentences.length) return null
@@ -55,12 +71,34 @@ const toggleIsStart = async () => {
     if (!interval) return
     clearInterval(interval)
     interval = null
+    timeLimit.value = 100
+    timeCount.value = 0
+    frameCount.value = 0
+    currentSentenceId.value = 1
+    while (sentences.length > 0) {
+      sentences.shift()
+    }
   } else {
     await fetchSentences(sentences, level.value as Level)
 
     interval = setInterval(() => {
-      timeCount.value = timeCount.value + 1
-    }, 1000)
+      frameCount.value = (frameCount.value + 1) % 250
+      if (frameCount.value === 0) {
+        timeCount.value++
+      }
+      timeLimit.value = timeLimit.value - 0.02
+      if (timeLimit.value < 0) {
+        sentences.shift()
+        currentSentenceId.value++
+        timeLimit.value = 100
+        if (!sentences.length) {
+          isStart.value = false
+          currentSentenceId.value = 1
+          if (!interval) return
+          clearInterval(interval)
+        }
+      }
+    })
   }
   isStart.value = !isStart.value
 }
@@ -99,6 +137,7 @@ const detectKeydown = (e: KeyboardEvent) => {
     }
     if (!kanjiArr.value.length) {
       sentences.shift()
+      timeLimit.value = 100
       currentSentenceId.value++
       if (!sentences.length) {
         isStart.value = false
@@ -147,6 +186,7 @@ const setLevel = (e: MouseEvent) => {
     <div tabindex="0" @keydown="detectKeydown" @keyup="detectKeyup" :class="{ pressed: isPressed }">
       <span>Time: {{ timeCount }}</span>
       <div class="main-window">
+        <div class="time-bar"></div>
         <div class="main-container" v-if="isStart">
           <div>{{ sentences.length > 0 ? $t('sentence_' + currentSentenceId) : '' }}</div>
           <ul v-if="currentSentence" class="sentence-container">
@@ -210,10 +250,20 @@ const setLevel = (e: MouseEvent) => {
         <div class="main-container" v-else>
           <div>Bopomofo Typer</div>
           <div class="level-container">
-            <button class="level-button" :class="[level === Level.easy ? 'level-selected' : '']" :value="Level.easy" @click.stop="setLevel">
+            <button
+              class="level-button"
+              :class="[level === Level.easy ? 'level-selected' : '']"
+              :value="Level.easy"
+              @click.stop="setLevel"
+            >
               {{ $t('easy') }}
             </button>
-            <button class="level-button" :class="[level === Level.hard ? 'level-selected' : '']" :value="Level.hard" @click.stop="setLevel">
+            <button
+              class="level-button"
+              :class="[level === Level.hard ? 'level-selected' : '']"
+              :value="Level.hard"
+              @click.stop="setLevel"
+            >
               {{ $t('hard') }}
             </button>
           </div>
@@ -239,6 +289,7 @@ main {
   padding: 0;
   margin: 0;
   .main-window {
+    position: relative;
     width: 640px;
     height: 360px;
     background-color: aqua;
@@ -299,6 +350,14 @@ main {
 
   .level-selected {
     background-color: blue;
+  }
+
+  .time-bar {
+    position: absolute;
+    top: 0;
+    width: v-bind('timeLimitStr');
+    height: 20px;
+    background-color: v-bind('timeBarColor');
   }
 }
 </style>

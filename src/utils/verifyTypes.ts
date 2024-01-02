@@ -4,7 +4,7 @@ export const isChuck = (text: any): text is Chunk => {
     return (text as Chunk).meanOfChunk !== undefined
   }
 
-export const isWord = (text: any): text is Word => {
+export const isWord = (text: any): text is Word => {  
   return (text as Word).partOfSpeech !== undefined
 }
 

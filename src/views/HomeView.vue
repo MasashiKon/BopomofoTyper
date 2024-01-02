@@ -44,7 +44,7 @@ const currentSentence = computed(() => {
 const kanjiArr = computed((): Kanji[] => {
   const kanjiArr: Kanji[] = []
   if (!currentSentence.value) return kanjiArr
-  for (let chunk of currentSentence.value.chunks) {
+  for (let chunk of currentSentence.value.chunks) {    
     if (isWord(chunk)) {
       for (let kanji of chunk.kanji) {
         kanjiArr.push(kanji)
@@ -81,6 +81,7 @@ const toggleIsStart = async () => {
   } else {
     await fetchSentences(sentences, level.value as Level)
 
+    timeCount.value = 0
     interval = setInterval(() => {
       frameCount.value = (frameCount.value + 1) % 250
       if (frameCount.value === 0) {
@@ -126,7 +127,7 @@ const detectKeydown = (e: KeyboardEvent) => {
     if (targetKey) {
       targetKey.classList.add('key-pressed')
     }
-  }
+  }  
   const answer: ZhuyinChar | undefined = kanjiArr.value[0].zhuyin.find((zhuyin) => !zhuyin.done)
   if (!answer) return
   if (e.key === getCorrespondingKeys(answer.char, lang.value)) {
@@ -186,8 +187,8 @@ const setLevel = (e: MouseEvent) => {
     <div tabindex="0" @keydown="detectKeydown" @keyup="detectKeyup" :class="{ pressed: isPressed }">
       <span>Time: {{ timeCount }}</span>
       <div class="main-window">
-        <div class="time-bar"></div>
         <div class="main-container" v-if="isStart">
+          <div class="time-bar"></div>
           <div>{{ sentences.length > 0 ? $t('sentence_' + currentSentenceId) : '' }}</div>
           <ul v-if="currentSentence" class="sentence-container">
             <li v-for="(chunk, cIndex) in currentSentence.chunks" :key="'chunk' + cIndex">
@@ -289,7 +290,6 @@ main {
   padding: 0;
   margin: 0;
   .main-window {
-    position: relative;
     width: 640px;
     height: 360px;
     background-color: aqua;
@@ -301,6 +301,8 @@ main {
   }
 
   .main-container {
+    position: relative;
+    width: 100%;
     height: 50%;
     display: flex;
     flex-direction: column;

@@ -66,7 +66,8 @@ export enum MeanOfChunk {
   greeting = 'greeting',
   completeSentence = 'completeSentence',
   reason = 'reason',
-  question = 'question'
+  question = 'question',
+  adnominalModifier = 'adnominalModifier'
 }
 
 export enum AvailableLang {

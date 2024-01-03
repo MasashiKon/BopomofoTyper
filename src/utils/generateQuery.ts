@@ -44,11 +44,11 @@ const easy_1 = `{
   }
 }`
 
-export default (level: Level): string => {    
+export default (level: Level, innerLevel: number): string => {    
   switch (level) {
     case Level.easy:
       return `{
-        sentences_easy_2Collection {
+        sentences_easy_${innerLevel}Collection {
           edges {
             node {
               id
@@ -57,7 +57,7 @@ export default (level: Level): string => {
               done
               translation_en
               translation_ja
-              easy_2_wordsCollection {
+              easy_${innerLevel}_wordsCollection {
                 edges {
                   node {
                     words {
@@ -86,7 +86,7 @@ export default (level: Level): string => {
                   }
                 }
               }
-              easy_2_chunksCollection {
+              easy_${innerLevel}_chunksCollection {
                 edges {
                   node {
                     chunks {
@@ -142,7 +142,7 @@ export default (level: Level): string => {
                   }
                 }
               }
-              easy_2_wordsCollection {
+              easy_${innerLevel}_wordsCollection {
                 edges {
                   node {
                     words {

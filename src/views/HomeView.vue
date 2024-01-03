@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
-import type { Kanji, Sentence, ZhuyinChar } from '@/type/types'
-import { AvailableLang, LocalStrageName, Level } from '@/type/enums'
+import type { Kanji, Sentence, ZhuyinChar, SentenceContainer } from '@/type/types'
+import { AvailableLang, LocalStrageName, Level, Notch } from '@/type/enums'
 import getCorrespondingKeys from '@/utils/getCorrespondingKeys'
 import { isChuck, isWord } from '@/utils/verifyTypes'
 import fetchSentences from '@/utils/fetchSentences'
@@ -14,16 +14,28 @@ const isStart = ref(false)
 const lang = ref(AvailableLang.en)
 const timeCount = ref(0)
 const frameCount = ref(0)
+const streak = ref(0)
 const timeLimit = ref(100)
 const currentSentenceId = ref(1)
 const level = ref(localStorage.getItem(LocalStrageName.level) || Level.easy)
 
 let keys: Element[]
 
-const sentences: Sentence[] = reactive([])
+const sentences: SentenceContainer = reactive({
+  high: [],
+  low: []
+})
 
 const timeLimitStr = computed(() => {
   return timeLimit.value + '%'
+})
+
+const currentNotch = computed(() => {
+  if (streak.value > 5) {
+    return Notch.high
+  } else {
+    return Notch.low
+  }
 })
 
 const timeBarColor = computed(() => {
@@ -37,14 +49,24 @@ const timeBarColor = computed(() => {
 })
 
 const currentSentence = computed(() => {
-  if (!sentences.length) return null
-  return sentences[0]
+  if (!sentences.low.length && !sentences.high.length) return null
+  if (currentNotch.value === Notch.low && sentences.low.length) {
+    return sentences.low[0]
+  } else if (currentNotch.value === Notch.high && sentences.high.length) {
+    return sentences.high[0]
+  } else {
+    if (sentences.low.length) {
+      return sentences.low[0]
+    } else {
+      return sentences.high[0]
+    }
+  }
 })
 
 const kanjiArr = computed((): Kanji[] => {
   const kanjiArr: Kanji[] = []
   if (!currentSentence.value) return kanjiArr
-  for (let chunk of currentSentence.value.chunks) {    
+  for (let chunk of currentSentence.value.chunks) {
     if (isWord(chunk)) {
       for (let kanji of chunk.kanji) {
         kanjiArr.push(kanji)
@@ -75,8 +97,11 @@ const toggleIsStart = async () => {
     timeCount.value = 0
     frameCount.value = 0
     currentSentenceId.value = 1
-    while (sentences.length > 0) {
-      sentences.shift()
+    while (sentences.low.length > 0) {
+      sentences.low.shift()
+    }
+    while (sentences.high.length > 0) {
+      sentences.high.shift()
     }
   } else {
     await fetchSentences(sentences, level.value as Level)
@@ -89,10 +114,16 @@ const toggleIsStart = async () => {
       }
       timeLimit.value = timeLimit.value - 0.02
       if (timeLimit.value < 0) {
-        sentences.shift()
+        if (currentNotch.value === Notch.low) {
+          sentences.low.shift()
+        } else if (currentNotch.value === Notch.high) {
+          sentences.high.shift()
+        }
+        streak.value = 0
+        console.log(currentNotch.value);
         currentSentenceId.value++
         timeLimit.value = 100
-        if (!sentences.length) {
+        if (!sentences.low.length && !sentences.high.length) {
           isStart.value = false
           currentSentenceId.value = 1
           if (!interval) return
@@ -127,7 +158,7 @@ const detectKeydown = (e: KeyboardEvent) => {
     if (targetKey) {
       targetKey.classList.add('key-pressed')
     }
-  }  
+  }
   const answer: ZhuyinChar | undefined = kanjiArr.value[0].zhuyin.find((zhuyin) => !zhuyin.done)
   if (!answer) return
   if (e.key === getCorrespondingKeys(answer.char, lang.value)) {
@@ -135,12 +166,19 @@ const detectKeydown = (e: KeyboardEvent) => {
     if (kanjiArr.value[0].zhuyin.every((zhuyin) => zhuyin.done)) {
       kanjiArr.value[0].done = true
       kanjiArr.value.shift()
+      timeLimit.value += 5
     }
     if (!kanjiArr.value.length) {
-      sentences.shift()
+      if (currentNotch.value === Notch.low) {
+        sentences.low.shift()
+      } else if (currentNotch.value === Notch.high) {
+        sentences.high.shift()
+      }
+      streak.value++
+      console.log(currentNotch.value);
       timeLimit.value = 100
       currentSentenceId.value++
-      if (!sentences.length) {
+      if (!sentences.low.length && !sentences.high.length) {
         isStart.value = false
         currentSentenceId.value = 1
         if (!interval) return
@@ -189,7 +227,7 @@ const setLevel = (e: MouseEvent) => {
       <div class="main-window">
         <div class="main-container" v-if="isStart">
           <div class="time-bar"></div>
-          <div>{{ sentences.length > 0 ? $t('sentence_' + currentSentenceId) : '' }}</div>
+          <!-- <div>{{ sentences.length > 0 ? $t('sentence_' + currentSentenceId) : '' }}</div> -->
           <ul v-if="currentSentence" class="sentence-container">
             <li v-for="(chunk, cIndex) in currentSentence.chunks" :key="'chunk' + cIndex">
               <ul v-if="isChuck(chunk)" class="chunk-container">

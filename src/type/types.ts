@@ -33,3 +33,8 @@ export type Sentence = {
   chunks: (Chunk | Word)[]
   done: boolean
 }
+
+export type SentenceContainer = {
+  high: Sentence[]
+  low: Sentence[]
+}

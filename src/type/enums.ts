@@ -84,3 +84,9 @@ export enum Level {
   easy = 'easy',
   hard = 'hard'
 }
+
+export enum Notch {
+  low = 'low',
+  mid = 'mid',
+  high = 'high'
+}

@@ -1,54 +1,8 @@
 import { Level } from '@/type/enums'
 
-const easy_1 = `{
-  sentences_easy_1Collection {
-    edges {
-      node {
-        id
-        display
-        chunks
-        done
-        translation_en
-        translation_ja
-        easy_1_wordsCollection {
-          edges {
-            node {
-              words {
-                display
-                kanji
-                partOfSpeech
-                words_kanjiCollection {
-                  edges {
-                    node {
-                      kanji {
-                        display
-                        zhuyin
-                        done
-                        kanji_zhuyinCollection {
-                          edges {
-                            node {
-                              zhuyin_zhuyin
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-}`
-
-export default (level: Level, innerLevel: number): string => {    
-  switch (level) {
-    case Level.easy:
-      return `{
-        sentences_easy_${innerLevel}Collection {
+export default (level: Level, innerLevel: number): string => {
+  return `{
+        sentences_${level}_${innerLevel}Collection {
           edges {
             node {
               id
@@ -57,7 +11,7 @@ export default (level: Level, innerLevel: number): string => {
               done
               translation_en
               translation_ja
-              easy_${innerLevel}_wordsCollection {
+              ${level}_${innerLevel}_wordsCollection {
                 edges {
                   node {
                     words {
@@ -86,7 +40,7 @@ export default (level: Level, innerLevel: number): string => {
                   }
                 }
               }
-              easy_${innerLevel}_chunksCollection {
+              ${level}_${innerLevel}_chunksCollection {
                 edges {
                   node {
                     chunks {
@@ -142,7 +96,7 @@ export default (level: Level, innerLevel: number): string => {
                   }
                 }
               }
-              easy_${innerLevel}_wordsCollection {
+              ${level}_${innerLevel}_wordsCollection {
                 edges {
                   node {
                     words {
@@ -174,109 +128,4 @@ export default (level: Level, innerLevel: number): string => {
           }
         }
       }`
-    case Level.hard:
-      return `{
-        sentencesCollection(filter: {or: [{id: {eq: 1}}, {id: {eq: 2}}]}) {
-          edges {
-            node {
-              id
-              display
-              chunks
-              done
-              translation_en
-              translation_ja
-              sentences_chunksCollection {
-                edges {
-                  node {
-                    chunks {
-                      display
-                      words
-                      meanOfChunk
-                      chunks_wordsCollection {
-                        edges {
-                          node {
-                            words {
-                              display
-                              kanji
-                              partOfSpeech
-                              words_kanjiCollection {
-                                edges {
-                                  node {
-                                    kanji {
-                                      display
-                                      zhuyin
-                                      done
-                                      kanji_zhuyinCollection {
-                                        edges {
-                                          node {
-                                            zhuyin_zhuyin
-                                          }
-                                        }
-                                      }
-                                    }
-                                  }
-                                }
-                              }
-                            }
-                          }
-                        }
-                      }
-                      chunks_kanjiCollection {
-                        edges {
-                          node {
-                            kanji {
-                              display
-                              zhuyin
-                              done
-                              kanji_zhuyinCollection {
-                                edges {
-                                  node {
-                                    zhuyin_zhuyin
-                                  }
-                                }
-                              }
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-              sentences_wordsCollection {
-                edges {
-                  node {
-                    words {
-                      display
-                      kanji
-                      partOfSpeech
-                      words_kanjiCollection {
-                        edges {
-                          node {
-                            kanji {
-                              display
-                              zhuyin
-                              done
-                              kanji_zhuyinCollection {
-                                edges {
-                                  node {
-                                    zhuyin_zhuyin
-                                  }
-                                }
-                              }
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-        }`
-    default:
-      return ''
-  }
 }

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
-import type { Kanji, Sentence, ZhuyinChar, SentenceContainer } from '@/type/types'
+import type { Kanji, ZhuyinChar, SentenceContainer } from '@/type/types'
 import { AvailableLang, LocalStrageName, Level, Notch } from '@/type/enums'
 import getCorrespondingKeys from '@/utils/getCorrespondingKeys'
 import { isChuck, isWord } from '@/utils/verifyTypes'
@@ -31,7 +31,7 @@ const timeLimitStr = computed(() => {
 })
 
 const currentNotch = computed(() => {
-  if (streak.value > 5) {
+  if (streak.value > 5 && sentences.high.length) {
     return Notch.high
   } else {
     return Notch.low
@@ -55,11 +55,7 @@ const currentSentence = computed(() => {
   } else if (currentNotch.value === Notch.high && sentences.high.length) {
     return sentences.high[0]
   } else {
-    if (sentences.low.length) {
-      return sentences.low[0]
-    } else {
-      return sentences.high[0]
-    }
+    return sentences.low[0]
   }
 })
 
@@ -120,7 +116,6 @@ const toggleIsStart = async () => {
           sentences.high.shift()
         }
         streak.value = 0
-        console.log(currentNotch.value);
         currentSentenceId.value++
         timeLimit.value = 100
         if (!sentences.low.length && !sentences.high.length) {
@@ -175,7 +170,6 @@ const detectKeydown = (e: KeyboardEvent) => {
         sentences.high.shift()
       }
       streak.value++
-      console.log(currentNotch.value);
       timeLimit.value = 100
       currentSentenceId.value++
       if (!sentences.low.length && !sentences.high.length) {

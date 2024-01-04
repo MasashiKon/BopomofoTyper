@@ -1,22 +1,24 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
 import type { Kanji, ZhuyinChar, SentenceContainer } from '@/type/types'
-import { AvailableLang, LocalStrageName, Level, Notch } from '@/type/enums'
+import { AvailableLang, LocalStrageName, Level, Notch, GameState } from '@/type/enums'
 import getCorrespondingKeys from '@/utils/getCorrespondingKeys'
 import { isChuck, isWord } from '@/utils/verifyTypes'
 import fetchSentences from '@/utils/fetchSentences'
 import i18next from 'i18next'
 import VisualKeyboard from '@/components/VisualKeyboard.vue'
 
+const gameTime = 120
+
 const isPressed = ref(false)
 const isShift = ref(false)
-const isStart = ref(false)
+const gameState = ref(GameState.stop)
 const lang = ref(AvailableLang.en)
-const timeCount = ref(0)
+const timeCount = ref(gameTime)
 const frameCount = ref(0)
 const streak = ref(0)
 const timeLimit = ref(100)
-const currentSentenceId = ref(1)
+const score = ref(0)
 const level = ref(localStorage.getItem(LocalStrageName.level) || Level.easy)
 
 let keys: Element[]
@@ -84,50 +86,70 @@ const kanjiArr = computed((): Kanji[] => {
 
 let interval: number | null
 
-const toggleIsStart = async () => {
-  if (isStart.value) {
-    if (!interval) return
+const startGame = async () => {
+  await fetchSentences(sentences, level.value as Level)
+
+  gameState.value = GameState.playing
+  timeLimit.value = 100
+  timeCount.value = gameTime
+  frameCount.value = 0
+  score.value = 0
+  if (interval) {
     clearInterval(interval)
-    interval = null
-    timeLimit.value = 100
-    timeCount.value = 0
-    frameCount.value = 0
-    currentSentenceId.value = 1
+  }
+  interval = setInterval(() => {
+    if (frameCount.value === 0) {
+      timeCount.value--
+    }
+    frameCount.value = (frameCount.value + 1) % 250
+    timeLimit.value = timeLimit.value - 0.02
+    if (timeCount.value <= 0) {
+      moveToResult()
+    } else if (timeLimit.value < 0) {
+      if (currentNotch.value === Notch.low) {
+        sentences.low.shift()
+      } else if (currentNotch.value === Notch.high) {
+        sentences.high.shift()
+      }
+      streak.value = 0
+      timeLimit.value = 100
+      if (!sentences.low.length && !sentences.high.length) {
+        moveToResult()
+      }
+    }
+  })
+}
+
+const initiateStatus = () => {
+  gameState.value = GameState.stop
+  timeLimit.value = 100
+  timeCount.value = gameTime
+  frameCount.value = 0
+  score.value = 0
+  if (!interval) return
+  clearInterval(interval)
+  interval = null
+}
+
+const moveToResult = () => {
+  gameState.value = GameState.result
+  if (!interval) return
+  clearInterval(interval)
+  interval = null
+}
+
+const toggleGame = async () => {
+  if (gameState.value === GameState.stop) {
+    startGame()
+  } else {
+    initiateStatus()
     while (sentences.low.length > 0) {
       sentences.low.shift()
     }
     while (sentences.high.length > 0) {
       sentences.high.shift()
     }
-  } else {
-    await fetchSentences(sentences, level.value as Level)
-
-    timeCount.value = 0
-    interval = setInterval(() => {
-      frameCount.value = (frameCount.value + 1) % 250
-      if (frameCount.value === 0) {
-        timeCount.value++
-      }
-      timeLimit.value = timeLimit.value - 0.02
-      if (timeLimit.value < 0) {
-        if (currentNotch.value === Notch.low) {
-          sentences.low.shift()
-        } else if (currentNotch.value === Notch.high) {
-          sentences.high.shift()
-        }
-        streak.value = 0
-        currentSentenceId.value++
-        timeLimit.value = 100
-        if (!sentences.low.length && !sentences.high.length) {
-          isStart.value = false
-          currentSentenceId.value = 1
-          if (!interval) return
-          clearInterval(interval)
-        }
-      }
-    })
   }
-  isStart.value = !isStart.value
 }
 
 onMounted(() => {
@@ -158,25 +180,29 @@ const detectKeydown = (e: KeyboardEvent) => {
   if (!answer) return
   if (e.key === getCorrespondingKeys(answer.char, lang.value)) {
     answer.done = true
+    score.value += 1
     if (kanjiArr.value[0].zhuyin.every((zhuyin) => zhuyin.done)) {
       kanjiArr.value[0].done = true
       kanjiArr.value.shift()
       timeLimit.value += 5
+      score.value += 5
     }
     if (!kanjiArr.value.length) {
       if (currentNotch.value === Notch.low) {
+        score.value += 10
         sentences.low.shift()
       } else if (currentNotch.value === Notch.high) {
+        score.value += 25
         sentences.high.shift()
       }
       streak.value++
       timeLimit.value = 100
-      currentSentenceId.value++
+      score.value += streak.value * 5
+      if(streak.value % 3 === 0){
+        timeCount.value += 10
+      }
       if (!sentences.low.length && !sentences.high.length) {
-        isStart.value = false
-        currentSentenceId.value = 1
-        if (!interval) return
-        clearInterval(interval)
+        moveToResult()
       }
     }
   }
@@ -218,19 +244,21 @@ const setLevel = (e: MouseEvent) => {
     <button v-on:click="changeLanguage('ja')">Japanese</button>
     <div tabindex="0" @keydown="detectKeydown" @keyup="detectKeyup" :class="{ pressed: isPressed }">
       <span>Time: {{ timeCount }}</span>
+      <span>Score: {{ score }}</span>
       <div class="main-window">
-        <div class="main-container" v-if="isStart">
+        <div class="main-container" v-if="gameState === GameState.playing">
           <div class="time-bar"></div>
-          <!-- <div>{{ sentences.length > 0 ? $t('sentence_' + currentSentenceId) : '' }}</div> -->
+          <div>
+            {{ currentSentence ? $t(`sentence_${currentNotch}_${currentSentence.id}`) : '' }}
+          </div>
           <ul v-if="currentSentence" class="sentence-container">
             <li v-for="(chunk, cIndex) in currentSentence.chunks" :key="'chunk' + cIndex">
               <ul v-if="isChuck(chunk)" class="chunk-container">
                 <li v-for="(word, wIndex) in chunk.word" :key="'word' + cIndex + wIndex">
-                  <ul v-if="isWord(word)">
+                  <ul v-if="isWord(word)" class="kanji-container">
                     <li
                       v-for="(kanji, kIndex) in word.kanji"
                       :key="'kanji' + cIndex + wIndex + kIndex"
-                      class="kanji-container"
                     >
                       <div :class="{ pressed: kanji.done }">{{ kanji.display }}</div>
                       <ul class="zyuin-container">
@@ -245,40 +273,45 @@ const setLevel = (e: MouseEvent) => {
                     </li>
                   </ul>
                   <ul v-else class="kanji-container">
-                    <div :class="{ pressed: word.done }">{{ word.display }}</div>
+                    <li>
+                      <div :class="{ pressed: word.done }">{{ word.display }}</div>
+                      <ul class="zyuin-container">
+                        <li
+                          v-for="(zhuyin, zIndex) in word.zhuyin"
+                          :key="'zhuin' + cIndex + wIndex + zIndex"
+                          :class="{ pressed: zhuyin.done }"
+                        >
+                          {{ zhuyin.char }}
+                        </li>
+                      </ul>
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+              <ul v-else class="chunk-container">
+                <ul class="kanji-container">
+                  <li v-for="(kanji, kIndex) in chunk.kanji" :key="'kanji' + cIndex + kIndex">
+                    <div :class="{ pressed: kanji.done }">{{ kanji.display }}</div>
                     <ul class="zyuin-container">
                       <li
-                        v-for="(zhuyin, zIndex) in word.zhuyin"
-                        :key="'zhuin' + cIndex + wIndex + zIndex"
+                        v-for="(zhuyin, zIndex) in kanji.zhuyin"
+                        :key="'zhuin' + cIndex + kIndex + zIndex"
                         :class="{ pressed: zhuyin.done }"
                       >
                         {{ zhuyin.char }}
                       </li>
                     </ul>
-                  </ul>
-                </li>
-              </ul>
-              <ul v-else class="chunk-container">
-                <li
-                  v-for="(kanji, kIndex) in chunk.kanji"
-                  :key="'kanji' + cIndex + kIndex"
-                  class="kanji-container"
-                >
-                  <div :class="{ pressed: kanji.done }">{{ kanji.display }}</div>
-                  <ul class="zyuin-container">
-                    <li
-                      v-for="(zhuyin, zIndex) in kanji.zhuyin"
-                      :key="'zhuin' + cIndex + kIndex + zIndex"
-                      :class="{ pressed: zhuyin.done }"
-                    >
-                      {{ zhuyin.char }}
-                    </li>
-                  </ul>
-                </li>
+                  </li>
+                </ul>
               </ul>
             </li>
           </ul>
           <div v-else>Loading</div>
+        </div>
+        <div v-else-if="gameState === GameState.result">
+          <div>Your score: {{ score }}</div>
+          <button @click.stop="toggleGame">Leave</button
+          ><button @click.stop="startGame">Play again</button>
         </div>
         <div class="main-container" v-else>
           <div>Bopomofo Typer</div>
@@ -304,7 +337,7 @@ const setLevel = (e: MouseEvent) => {
       </div>
     </div>
     <VisualKeyboard :isShift="isShift" />
-    <button @click="toggleIsStart">{{ isStart ? 'Stop' : 'Start' }}</button>
+    <button @click="toggleGame">{{ gameState === GameState.stop ? 'Start' : 'Stop' }}</button>
   </main>
 </template>
 
@@ -358,6 +391,7 @@ main {
       justify-content: center;
       margin: 0 10px;
       .kanji-container {
+        display: flex;
         text-align: center;
         margin: 0 5px;
         .zyuin-container {

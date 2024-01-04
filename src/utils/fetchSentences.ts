@@ -170,11 +170,11 @@ const generateSentences = (
       sentences.push(sentenceContainer)
 
       i18next.addResourceBundle('en', 'translation', {
-        [`sentence_${translationIndex.index}`]: sentence.translation_en
+        [`sentence_${innerLevel}_${sentence.id}`]: sentence.translation_en
       })
 
       i18next.addResourceBundle('ja', 'translation', {
-        [`sentence_${translationIndex.index}`]: sentence.translation_ja
+        [`sentence_${innerLevel}_${sentence.id}`]: sentence.translation_ja
       })
 
       translationIndex.index++

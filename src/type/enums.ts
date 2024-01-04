@@ -86,7 +86,12 @@ export enum Level {
 }
 
 export enum Notch {
-  low = 'low',
-  mid = 'mid',
-  high = 'high'
+  low = 1,
+  high = 2
+}
+
+export enum GameState {
+  stop,
+  playing,
+  result
 }

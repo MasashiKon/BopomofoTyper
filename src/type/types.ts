@@ -29,7 +29,7 @@ export type Chunk = {
 
 export type Sentence = {
   // sentense: string
-  id?: Number
+  id: Number
   chunks: (Chunk | Word)[]
   done: boolean
 }

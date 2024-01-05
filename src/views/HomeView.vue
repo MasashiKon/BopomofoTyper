@@ -23,6 +23,8 @@ const level = ref(localStorage.getItem(LocalStrageName.level) || Level.easy)
 
 let keys: Element[]
 
+const addedTime: number[] = reactive([])
+
 const sentences: SentenceContainer = reactive({
   high: [],
   low: []
@@ -198,8 +200,10 @@ const detectKeydown = (e: KeyboardEvent) => {
       streak.value++
       timeLimit.value = 100
       score.value += streak.value * 5
-      if(streak.value % 3 === 0){
-        timeCount.value += 10
+      if (streak.value % 3 === 0) {
+        const streakBonus = 10
+        timeCount.value += streakBonus
+        displayAddedTime(streakBonus)
       }
       if (!sentences.low.length && !sentences.high.length) {
         moveToResult()
@@ -235,6 +239,13 @@ const setLevel = (e: MouseEvent) => {
     localStorage.setItem(LocalStrageName.level, Level.hard)
   }
 }
+
+const displayAddedTime = (time: number) => {
+  addedTime.push(time)
+  setTimeout(() => {
+    addedTime.shift()
+  }, 600)
+}
 </script>
 
 <template>
@@ -243,8 +254,14 @@ const setLevel = (e: MouseEvent) => {
     <button v-on:click="changeLanguage('en')">English</button>
     <button v-on:click="changeLanguage('ja')">Japanese</button>
     <div tabindex="0" @keydown="detectKeydown" @keyup="detectKeyup" :class="{ pressed: isPressed }">
-      <span>Time: {{ timeCount }}</span>
-      <span>Score: {{ score }}</span>
+      <div>
+        <span>Time: {{ timeCount }}</span
+        >&nbsp;
+        <span v-for="(time, index) in addedTime" v-bind:key="'time' + index"
+          >+{{ time }}&nbsp;</span
+        >
+      </div>
+      <div>Score: {{ score }}</div>
       <div class="main-window">
         <div class="main-container" v-if="gameState === GameState.playing">
           <div class="time-bar"></div>

@@ -88,6 +88,10 @@ export default (keyword: string): Zhuyin => {
       return Zhuyin.exclamation
     case 'question':
       return Zhuyin.question
+    case 'juhao':
+      return Zhuyin.juhao
+    case 'douhao':
+      return Zhuyin.douhao
     default:
       return Zhuyin.error
   }

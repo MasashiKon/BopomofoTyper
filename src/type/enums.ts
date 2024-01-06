@@ -42,7 +42,9 @@ export enum Zhuyin {
   tone5 = '˙',
   exclamation = '!',
   question = '?',
-  error = 'error'
+  juhao = "，",
+  douhao = "。",
+  error = 'error',
 }
 
 export enum PartOfSpeech {
@@ -67,7 +69,9 @@ export enum MeanOfChunk {
   completeSentence = 'completeSentence',
   reason = 'reason',
   question = 'question',
-  adnominalModifier = 'adnominalModifier'
+  adnominalModifier = 'adnominalModifier',
+  predicate = 'predicate',
+  object = "object"
 }
 
 export enum AvailableLang {

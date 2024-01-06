@@ -90,6 +90,10 @@ export default (zhuyin: Zhuyin, lang: AvailableLang) => {
           return '!'
         case Zhuyin.question:
           return '?'
+        case Zhuyin.juhao:
+          return '<'
+        case Zhuyin.douhao:
+          return '>'
         default:
           return null
       }
@@ -181,6 +185,10 @@ export default (zhuyin: Zhuyin, lang: AvailableLang) => {
           return '!'
         case Zhuyin.question:
           return '?'
+        case Zhuyin.juhao:
+          return '<'
+        case Zhuyin.douhao:
+          return '>'
         default:
           return null
       }

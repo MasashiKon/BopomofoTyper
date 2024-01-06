@@ -168,10 +168,12 @@ defineProps({ isShift: Boolean })
         <div class="keyboard-key">
           <div>,</div>
           <div v-if="!isShift">ㄝ</div>
+          <div v-else>，</div>
         </div>
         <div class="keyboard-key">
           <div>.</div>
           <div v-if="!isShift">ㄡ</div>
+          <div v-else>。</div>
         </div>
         <div class="keyboard-key">
           <div>/</div>

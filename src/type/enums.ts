@@ -55,7 +55,7 @@ export enum PartOfSpeech {
   pronoun = 'pronoun',
   preposition = 'preposition',
   conjunction = 'conjunction',
-  auxiliaryWord = 'auxiliaryWord',
+  auxiliaryVerb = 'auxiliaryVerb',
   measure = 'measure',
   particle = 'particle',
   determiner = 'determiner',
@@ -71,7 +71,9 @@ export enum MeanOfChunk {
   question = 'question',
   adnominalModifier = 'adnominalModifier',
   predicate = 'predicate',
-  object = "object"
+  object = "object",
+  mainClause = "mainClause",
+  subordinateClause = "subordinateClause"
 }
 
 export enum AvailableLang {

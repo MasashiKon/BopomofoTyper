@@ -164,7 +164,7 @@ const findTargetKey = (arr: Element[], e: KeyboardEvent) => {
       key.firstChild?.textContent === e.key.toUpperCase() ||
       (e.key === '?' && key.lastChild?.textContent === '？') ||
       (e.key === '!' && key.lastChild?.textContent === '！') ||
-      (e.key === '<' && key.lastChild?.textContent === '，') ||
+      (e.key === '<' && key.lastChild?.textContent === '，、') ||
       (e.key === '>' && key.lastChild?.textContent === '。')
     )
   })

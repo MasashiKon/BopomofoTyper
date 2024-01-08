@@ -44,6 +44,7 @@ export enum Zhuyin {
   question = '?',
   juhao = "，",
   douhao = "。",
+  dunhao = "、",
   error = 'error',
 }
 
@@ -59,7 +60,8 @@ export enum PartOfSpeech {
   measure = 'measure',
   particle = 'particle',
   determiner = 'determiner',
-  symbol = 'symbol'
+  symbol = 'symbol',
+  numeral = 'numeral'
 }
 
 export enum MeanOfChunk {

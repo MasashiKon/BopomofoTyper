@@ -92,6 +92,8 @@ export default (keyword: string): Zhuyin => {
       return Zhuyin.juhao
     case 'douhao':
       return Zhuyin.douhao
+    case 'dunhao':
+      return Zhuyin.dunhao
     default:
       return Zhuyin.error
   }

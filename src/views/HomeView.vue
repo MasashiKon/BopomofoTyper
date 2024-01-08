@@ -180,10 +180,15 @@ const detectKeydown = (e: KeyboardEvent) => {
       targetKey.classList.add('key-pressed')
     }
   }
+
   const answer: ZhuyinChar | undefined = kanjiArr.value[0].zhuyin.find((zhuyin) => !zhuyin.done)
+  let answer2: ZhuyinChar | undefined
+  if (kanjiArr.value[0].zhuyin2 && kanjiArr.value[0].zhuyin.length > 0) {
+    answer2 = kanjiArr.value[0].zhuyin2.find((zhuyin) => !zhuyin.done)
+  }
   if (!answer) return
-  if (e.key === getCorrespondingKeys(answer.char, lang.value)) {
-    answer.done = true
+
+  const evaluateStatus = () => {
     score.value += 1
     if (kanjiArr.value[0].zhuyin.every((zhuyin) => zhuyin.done)) {
       kanjiArr.value[0].done = true
@@ -211,6 +216,28 @@ const detectKeydown = (e: KeyboardEvent) => {
         moveToResult()
       }
     }
+  }
+
+  if (e.key === getCorrespondingKeys(answer.char, lang.value)) {
+    answer.done = true
+    if (answer2) answer2.done = true
+
+    evaluateStatus()
+  } else if (answer2 && e.key === getCorrespondingKeys(answer2.char, lang.value)) {
+    answer2.done = true
+    while (kanjiArr.value[0].zhuyin.length > 0) {
+      kanjiArr.value[0].zhuyin.shift()
+    }
+    if (kanjiArr.value[0].zhuyin2) {
+      for (const kanjiContainer of kanjiArr.value[0].zhuyin2) {
+        kanjiArr.value[0].zhuyin.push(kanjiContainer)
+      }
+      while (kanjiArr.value[0].zhuyin2.length > 0) {
+        kanjiArr.value[0].zhuyin2.shift()
+      }
+    }
+
+    evaluateStatus()
   }
 }
 

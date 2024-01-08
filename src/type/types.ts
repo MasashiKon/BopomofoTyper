@@ -12,6 +12,7 @@ export type ZhuyinChar = Omit<Character, 'char'> & {
 export type Kanji = {
   display: String
   zhuyin: ZhuyinChar[]
+  zhuyin2?: ZhuyinChar[]
   done: boolean
 }
 

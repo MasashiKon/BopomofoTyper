@@ -8,7 +8,6 @@ export default (level: Level, innerLevel: number): string => {
               id
               display
               chunks
-              done
               translation_en
               translation_ja
               ${level}_${innerLevel}_wordsCollection {
@@ -24,7 +23,7 @@ export default (level: Level, innerLevel: number): string => {
                             kanji {
                               display
                               zhuyin
-                              done
+                              zhuyin2
                               kanji_zhuyinCollection {
                                 edges {
                                   node {
@@ -60,6 +59,7 @@ export default (level: Level, innerLevel: number): string => {
                                     kanji {
                                       display
                                       zhuyin
+                                      zhuyin2
                                       kanji_zhuyinCollection {
                                         edges {
                                           node {
@@ -81,6 +81,7 @@ export default (level: Level, innerLevel: number): string => {
                             kanji {
                               display
                               zhuyin
+                              zhuyin2
                               kanji_zhuyinCollection {
                                 edges {
                                   node {
@@ -109,6 +110,7 @@ export default (level: Level, innerLevel: number): string => {
                             kanji {
                               display
                               zhuyin
+                              zhuyin2
                               kanji_zhuyinCollection {
                                 edges {
                                   node {

@@ -379,11 +379,11 @@ const displayAddedTime = (time: number) => {
               {{ $t('hard') }}
             </button>
           </div>
+          <button @click="toggleGame">Start</button>
         </div>
       </div>
     </div>
     <VisualKeyboard :isShift="isShift" />
-    <button @click="toggleGame">{{ gameState === GameState.stop ? 'Start' : 'Stop' }}</button>
   </main>
 </template>
 

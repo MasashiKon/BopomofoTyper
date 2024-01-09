@@ -75,7 +75,8 @@ export enum MeanOfChunk {
   predicate = 'predicate',
   object = "object",
   mainClause = "mainClause",
-  subordinateClause = "subordinateClause"
+  subordinateClause = "subordinateClause",
+  timeClause = "timeClause"
 }
 
 export enum AvailableLang {

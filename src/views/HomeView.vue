@@ -413,7 +413,7 @@ const displayAddedTime = (time: number) => {
               ><button @click.stop="startGame">Play again</button>
             </div>
             <div class="main-container" v-else>
-              <div>Bopomofo Typer</div>
+              <div>Bopomofo Typer(beta)</div>
               <div class="level-container">
                 <button
                   class="level-button"

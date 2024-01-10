@@ -99,7 +99,7 @@ const startGame = async () => {
   if (interval) {
     clearInterval(interval)
   }
-  interval = setInterval(() => {
+  interval = window.setInterval(() => {
     if (frameCount.value === 0) {
       timeCount.value--
     }

@@ -410,7 +410,7 @@ const displayAddedTime = (time: number) => {
             <div class="result-container" v-else-if="gameState === GameState.result">
               <div>Your score: {{ score }}</div>
               <div class="result-button-container">
-                <button @click.stop="toggleGame" class="game-button">Leave</button>
+                <button @click.stop="toggleGame" class="game-button">Back to title</button>
                 <button @click.stop="startGame" class="game-button">Play again</button>
               </div>
             </div>
@@ -635,7 +635,6 @@ main {
     width: v-bind('timeLimitStr');
     height: 20px;
     background-color: v-bind('timeBarColor');
-    transition: background-color 0.5s;
   }
 
   .mainwindow-focused {

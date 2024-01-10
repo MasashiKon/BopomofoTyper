@@ -8,7 +8,7 @@ import fetchSentences from '@/utils/fetchSentences'
 import i18next from 'i18next'
 import VisualKeyboard from '@/components/VisualKeyboard.vue'
 
-const gameTime = 180
+const gameTime = 120
 
 const isFocused = ref(false)
 const isShift = ref(false)
@@ -407,16 +407,18 @@ const displayAddedTime = (time: number) => {
               </ul>
               <div v-else>Loading</div>
             </div>
-            <div v-else-if="gameState === GameState.result">
+            <div class="result-container" v-else-if="gameState === GameState.result">
               <div>Your score: {{ score }}</div>
-              <button @click.stop="toggleGame">Leave</button
-              ><button @click.stop="startGame">Play again</button>
+              <div class="result-button-container">
+                <button @click.stop="toggleGame" class="game-button">Leave</button>
+                <button @click.stop="startGame" class="game-button">Play again</button>
+              </div>
             </div>
             <div class="main-container" v-else>
               <div>Bopomofo Typer(beta)</div>
               <div class="level-container">
                 <button
-                  class="level-button"
+                  class="game-button"
                   :class="[level === Level.easy ? 'level-selected' : '']"
                   :value="Level.easy"
                   @click.stop="setLevel"
@@ -424,7 +426,7 @@ const displayAddedTime = (time: number) => {
                   {{ $t('easy') }}
                 </button>
                 <button
-                  class="level-button"
+                  class="game-button"
                   :class="[level === Level.hard ? 'level-selected' : '']"
                   :value="Level.hard"
                   @click.stop="setLevel"
@@ -539,6 +541,7 @@ main {
     display: flex;
     justify-content: center;
     align-items: center;
+    overflow: hidden;
   }
 
   .main-container {
@@ -548,6 +551,21 @@ main {
     display: flex;
     flex-direction: column;
     justify-content: space-evenly;
+    align-items: center;
+  }
+
+  .result-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    div {
+      margin: 10px 0;
+    }
+  }
+
+  .result-button-container{
+    display: flex;
+    flex-direction: column;
     align-items: center;
   }
 
@@ -602,7 +620,7 @@ main {
     justify-content: space-evenly;
   }
 
-  .level-button {
+  .game-button {
     width: 100px;
     height: var(--text-height);
   }

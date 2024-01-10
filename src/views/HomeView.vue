@@ -8,9 +8,9 @@ import fetchSentences from '@/utils/fetchSentences'
 import i18next from 'i18next'
 import VisualKeyboard from '@/components/VisualKeyboard.vue'
 
-const gameTime = 120
+const gameTime = 180
 
-const isPressed = ref(false)
+const isFocused = ref(false)
 const isShift = ref(false)
 const gameState = ref(GameState.stop)
 const lang = ref(AvailableLang.en)
@@ -104,7 +104,7 @@ const startGame = async () => {
       timeCount.value--
     }
     frameCount.value = (frameCount.value + 1) % 250
-    timeLimit.value = timeLimit.value - 0.02
+    timeLimit.value = timeLimit.value - 0.01
     if (timeCount.value <= 0) {
       moveToResult()
     } else if (timeLimit.value < 0) {
@@ -171,73 +171,104 @@ const findTargetKey = (arr: Element[], e: KeyboardEvent) => {
 }
 
 const detectKeydown = (e: KeyboardEvent) => {
-  if (!kanjiArr.value || !kanjiArr.value.length) return
-  if (e.key === 'Shift') {
-    isShift.value = true
-  } else {
-    const targetKey = findTargetKey(keys, e)
-    if (targetKey) {
-      targetKey.classList.add('key-pressed')
-    }
-  }
-
-  const answer: ZhuyinChar | undefined = kanjiArr.value[0].zhuyin.find((zhuyin) => !zhuyin.done)
-  let answer2: ZhuyinChar | undefined
-  if (kanjiArr.value[0].zhuyin2 && kanjiArr.value[0].zhuyin.length > 0) {
-    answer2 = kanjiArr.value[0].zhuyin2.find((zhuyin) => !zhuyin.done)
-  }
-  if (!answer) return
-
-  const evaluateStatus = () => {
-    score.value += 1
-    if (kanjiArr.value[0].zhuyin.every((zhuyin) => zhuyin.done)) {
-      kanjiArr.value[0].done = true
-      kanjiArr.value.shift()
-      timeLimit.value += 5
-      score.value += 5
-    }
-    if (!kanjiArr.value.length) {
-      if (currentNotch.value === Notch.low) {
-        score.value += 10
-        sentences.low.shift()
-      } else if (currentNotch.value === Notch.high) {
-        score.value += 25
-        sentences.high.shift()
-      }
-      streak.value++
-      timeLimit.value = 100
-      score.value += streak.value * 5
-      if (streak.value % 3 === 0) {
-        const streakBonus = 10
-        timeCount.value += streakBonus
-        displayAddedTime(streakBonus)
-      }
-      if (!sentences.low.length && !sentences.high.length) {
-        moveToResult()
-      }
-    }
-  }
-
-  if (e.key === getCorrespondingKeys(answer.char, lang.value)) {
-    answer.done = true
-    if (answer2) answer2.done = true
-
-    evaluateStatus()
-  } else if (answer2 && e.key === getCorrespondingKeys(answer2.char, lang.value)) {
-    answer2.done = true
-    while (kanjiArr.value[0].zhuyin.length > 0) {
-      kanjiArr.value[0].zhuyin.shift()
-    }
-    if (kanjiArr.value[0].zhuyin2) {
-      for (const kanjiContainer of kanjiArr.value[0].zhuyin2) {
-        kanjiArr.value[0].zhuyin.push(kanjiContainer)
-      }
-      while (kanjiArr.value[0].zhuyin2.length > 0) {
-        kanjiArr.value[0].zhuyin2.shift()
+  if (gameState.value === GameState.playing) {
+    if (!kanjiArr.value || !kanjiArr.value.length) return
+    if (e.key === 'Shift') {
+      isShift.value = true
+    } else {
+      const targetKey = findTargetKey(keys, e)
+      if (targetKey) {
+        targetKey.classList.add('key-pressed')
       }
     }
 
-    evaluateStatus()
+    const answer: ZhuyinChar | undefined = kanjiArr.value[0].zhuyin.find((zhuyin) => !zhuyin.done)
+    let answer2: ZhuyinChar | undefined
+    if (kanjiArr.value[0].zhuyin2 && kanjiArr.value[0].zhuyin.length > 0) {
+      answer2 = kanjiArr.value[0].zhuyin2.find((zhuyin) => !zhuyin.done)
+    }
+    if (!answer) return
+
+    const evaluateStatus = () => {
+      score.value += 1
+      if (kanjiArr.value[0].zhuyin.every((zhuyin) => zhuyin.done)) {
+        kanjiArr.value[0].done = true
+        kanjiArr.value.shift()
+        timeLimit.value += 5
+        score.value += 5
+      }
+      if (!kanjiArr.value.length) {
+        if (currentNotch.value === Notch.low) {
+          score.value += 10
+          sentences.low.shift()
+        } else if (currentNotch.value === Notch.high) {
+          score.value += 25
+          sentences.high.shift()
+        }
+        streak.value++
+        timeLimit.value = 100
+        score.value += streak.value * 5
+        if (streak.value % 3 === 0) {
+          const streakBonus = 10
+          timeCount.value += streakBonus
+          displayAddedTime(streakBonus)
+        }
+        if (!sentences.low.length && !sentences.high.length) {
+          moveToResult()
+        }
+      }
+    }
+
+    if (e.key === getCorrespondingKeys(answer.char, lang.value)) {
+      answer.done = true
+      if (answer2) answer2.done = true
+
+      evaluateStatus()
+    } else if (answer2 && e.key === getCorrespondingKeys(answer2.char, lang.value)) {
+      answer2.done = true
+      while (kanjiArr.value[0].zhuyin.length > 0) {
+        kanjiArr.value[0].zhuyin.shift()
+      }
+      if (kanjiArr.value[0].zhuyin2) {
+        for (const kanjiContainer of kanjiArr.value[0].zhuyin2) {
+          kanjiArr.value[0].zhuyin.push(kanjiContainer)
+        }
+        while (kanjiArr.value[0].zhuyin2.length > 0) {
+          kanjiArr.value[0].zhuyin2.shift()
+        }
+      }
+
+      evaluateStatus()
+    }
+  } else if (gameState.value === GameState.stop) {
+    if (e.key === 'ArrowUp') {
+      switch (level.value) {
+        case Level.easy:
+          level.value = Level.hard
+          localStorage.setItem(LocalStrageName.level, Level.hard)
+          break
+        case Level.hard:
+          level.value = Level.easy
+          localStorage.setItem(LocalStrageName.level, Level.easy)
+          break
+      }
+    } else if (e.key === 'ArrowDown') {
+      switch (level.value) {
+        case Level.easy:
+          level.value = Level.hard
+          localStorage.setItem(LocalStrageName.level, Level.hard)
+          break
+        case Level.hard:
+          level.value = Level.easy
+          localStorage.setItem(LocalStrageName.level, Level.easy)
+          break
+      }
+    } else if (e.key === 'Enter') {
+      const target = e.target as HTMLDivElement
+      const startButton = target.querySelector('#start-button') as HTMLButtonElement
+      if (!startButton) return
+      startButton.click()
+    }
   }
 }
 
@@ -279,111 +310,143 @@ const displayAddedTime = (time: number) => {
 
 <template>
   <main>
-    <div style="height: 30px">{{ $t('translation') }}: {{ $t('currentLang') }}</div>
-    <button v-on:click="changeLanguage('en')">English</button>
-    <button v-on:click="changeLanguage('ja')">Japanese</button>
-    <div tabindex="0" @keydown="detectKeydown" @keyup="detectKeyup" :class="{ pressed: isPressed }">
-      <div>
-        <span>Time: {{ timeCount }}</span
-        >&nbsp;
-        <span v-for="(time, index) in addedTime" v-bind:key="'time' + index"
-          >+{{ time }}&nbsp;</span
-        >
-      </div>
-      <div>Score: {{ score }}</div>
-      <div class="main-window">
-        <div class="main-container" v-if="gameState === GameState.playing">
-          <div class="time-bar"></div>
-          <div>
-            {{ currentSentence ? $t(`sentence_${currentNotch}_${currentSentence.id}`) : '' }}
-          </div>
-          <ul v-if="currentSentence" class="sentence-container">
-            <li v-for="(chunk, cIndex) in currentSentence.chunks" :key="'chunk' + cIndex">
-              <ul v-if="isChuck(chunk)" class="chunk-container">
-                <li v-for="(word, wIndex) in chunk.word" :key="'word' + cIndex + wIndex">
-                  <ul v-if="isWord(word)" class="kanji-container">
-                    <li
-                      v-for="(kanji, kIndex) in word.kanji"
-                      :key="'kanji' + cIndex + wIndex + kIndex"
-                    >
-                      <div :class="{ pressed: kanji.done }">{{ kanji.display }}</div>
-                      <ul class="zyuin-container">
+    <div>
+      <div class="current-lang">{{ $t('translation') }}: {{ $t('currentLang') }}</div>
+      <button v-on:click="changeLanguage('en')" class="lang-button">English</button>
+      <button v-on:click="changeLanguage('ja')" class="lang-button">Japanese</button>
+      <div
+        id="game-container"
+        tabindex="0"
+        @keydown="detectKeydown"
+        @keyup="detectKeyup"
+        @focus="
+          () => {
+            isFocused = true
+          }
+        "
+        @blur="
+          () => {
+            isFocused = false
+          }
+        "
+      >
+        <div>
+          <span>Time: {{ timeCount }}</span
+          >&nbsp;
+          <span v-for="(time, index) in addedTime" v-bind:key="'time' + index"
+            >+{{ time }}&nbsp;</span
+          >
+        </div>
+        <div>Score: {{ score }}</div>
+        <div class="interacrive-part">
+          <div
+            class="main-window"
+            :class="{
+              'mainwindow-focused': isFocused
+            }"
+          >
+            <div class="main-container" v-if="gameState === GameState.playing">
+              <div class="time-bar"></div>
+              <div>
+                {{ currentSentence ? $t(`sentence_${currentNotch}_${currentSentence.id}`) : '' }}
+              </div>
+              <ul v-if="currentSentence" class="sentence-container">
+                <li v-for="(chunk, cIndex) in currentSentence.chunks" :key="'chunk' + cIndex">
+                  <ul v-if="isChuck(chunk)" class="chunk-container">
+                    <li v-for="(word, wIndex) in chunk.word" :key="'word' + cIndex + wIndex">
+                      <ul v-if="isWord(word)" class="kanji-container">
                         <li
-                          v-for="(zhuyin, zIndex) in kanji.zhuyin"
-                          :key="'zhuin' + cIndex + wIndex + kIndex + zIndex"
-                          :class="{ pressed: zhuyin.done }"
+                          v-for="(kanji, kIndex) in word.kanji"
+                          :key="'kanji' + cIndex + wIndex + kIndex"
                         >
-                          {{ zhuyin.char }}
+                          <div :class="{ pressed: kanji.done }">{{ kanji.display }}</div>
+                          <ul class="zyuin-container">
+                            <li
+                              v-for="(zhuyin, zIndex) in kanji.zhuyin"
+                              :key="'zhuin' + cIndex + wIndex + kIndex + zIndex"
+                              :class="{ pressed: zhuyin.done }"
+                            >
+                              {{ zhuyin.char }}
+                            </li>
+                          </ul>
+                        </li>
+                      </ul>
+                      <ul v-else class="kanji-container">
+                        <li>
+                          <div :class="{ pressed: word.done }">{{ word.display }}</div>
+                          <ul class="zyuin-container">
+                            <li
+                              v-for="(zhuyin, zIndex) in word.zhuyin"
+                              :key="'zhuin' + cIndex + wIndex + zIndex"
+                              :class="{ pressed: zhuyin.done }"
+                            >
+                              {{ zhuyin.char }}
+                            </li>
+                          </ul>
                         </li>
                       </ul>
                     </li>
                   </ul>
-                  <ul v-else class="kanji-container">
-                    <li>
-                      <div :class="{ pressed: word.done }">{{ word.display }}</div>
-                      <ul class="zyuin-container">
-                        <li
-                          v-for="(zhuyin, zIndex) in word.zhuyin"
-                          :key="'zhuin' + cIndex + wIndex + zIndex"
-                          :class="{ pressed: zhuyin.done }"
-                        >
-                          {{ zhuyin.char }}
-                        </li>
-                      </ul>
-                    </li>
+                  <ul v-else class="chunk-container">
+                    <ul class="kanji-container">
+                      <li v-for="(kanji, kIndex) in chunk.kanji" :key="'kanji' + cIndex + kIndex">
+                        <div :class="{ pressed: kanji.done }">{{ kanji.display }}</div>
+                        <ul class="zyuin-container">
+                          <li
+                            v-for="(zhuyin, zIndex) in kanji.zhuyin"
+                            :key="'zhuin' + cIndex + kIndex + zIndex"
+                            :class="{ pressed: zhuyin.done }"
+                          >
+                            {{ zhuyin.char }}
+                          </li>
+                        </ul>
+                      </li>
+                    </ul>
                   </ul>
                 </li>
               </ul>
-              <ul v-else class="chunk-container">
-                <ul class="kanji-container">
-                  <li v-for="(kanji, kIndex) in chunk.kanji" :key="'kanji' + cIndex + kIndex">
-                    <div :class="{ pressed: kanji.done }">{{ kanji.display }}</div>
-                    <ul class="zyuin-container">
-                      <li
-                        v-for="(zhuyin, zIndex) in kanji.zhuyin"
-                        :key="'zhuin' + cIndex + kIndex + zIndex"
-                        :class="{ pressed: zhuyin.done }"
-                      >
-                        {{ zhuyin.char }}
-                      </li>
-                    </ul>
-                  </li>
-                </ul>
-              </ul>
-            </li>
-          </ul>
-          <div v-else>Loading</div>
-        </div>
-        <div v-else-if="gameState === GameState.result">
-          <div>Your score: {{ score }}</div>
-          <button @click.stop="toggleGame">Leave</button
-          ><button @click.stop="startGame">Play again</button>
-        </div>
-        <div class="main-container" v-else>
-          <div>Bopomofo Typer</div>
-          <div class="level-container">
-            <button
-              class="level-button"
-              :class="[level === Level.easy ? 'level-selected' : '']"
-              :value="Level.easy"
-              @click.stop="setLevel"
-            >
-              {{ $t('easy') }}
-            </button>
-            <button
-              class="level-button"
-              :class="[level === Level.hard ? 'level-selected' : '']"
-              :value="Level.hard"
-              @click.stop="setLevel"
-            >
-              {{ $t('hard') }}
-            </button>
+              <div v-else>Loading</div>
+            </div>
+            <div v-else-if="gameState === GameState.result">
+              <div>Your score: {{ score }}</div>
+              <button @click.stop="toggleGame">Leave</button
+              ><button @click.stop="startGame">Play again</button>
+            </div>
+            <div class="main-container" v-else>
+              <div>Bopomofo Typer</div>
+              <div class="level-container">
+                <button
+                  class="level-button"
+                  :class="[level === Level.easy ? 'level-selected' : '']"
+                  :value="Level.easy"
+                  @click.stop="setLevel"
+                >
+                  {{ $t('easy') }}
+                </button>
+                <button
+                  class="level-button"
+                  :class="[level === Level.hard ? 'level-selected' : '']"
+                  :value="Level.hard"
+                  @click.stop="setLevel"
+                >
+                  {{ $t('hard') }}
+                </button>
+              </div>
+              <button
+                @click="toggleGame"
+                id="start-button"
+                :class="{
+                  'startbotton-focused': isFocused
+                }"
+              >
+                Start
+              </button>
+            </div>
           </div>
-          <button @click="toggleGame">Start</button>
+          <VisualKeyboard :isShift="isShift" />
         </div>
       </div>
     </div>
-    <VisualKeyboard :isShift="isShift" />
   </main>
 </template>
 
@@ -394,16 +457,83 @@ const displayAddedTime = (time: number) => {
     display: flex;
     align-items: center;
   }
+  color:
+  #3c493f
+  #5d6b62
+  #7e8d85
+  #99a69f
+  #b3bfb8
+  #d2dbd6
+  #f0f7f4
+  #c9eddc
+  #a2e3c4
 }*/
+
+@keyframes startbutton {
+  from {
+    background-color: #b3bfb8;
+  }
+  to {
+    background-color: #c9eddc;
+  }
+}
 
 main {
   --text-height: 30px;
+  --background: #d2dbd6;
+  --button-color: #b3bfb8;
+  --button-color-active: #d2dbd6;
+  --button-color-selected: #7e8d85;
   padding: 0;
   margin: 0;
+  display: flex;
+  justify-content: center;
+
+  button {
+    background-color: var(--button-color);
+    border-radius: 3px;
+    border: solid 1px #3c493f;
+    margin: 1px;
+    outline: none;
+  }
+
+  button:hover {
+    background-color: var(--button-color-selected);
+    transition: background-color 0.2s;
+  }
+
+  button:active {
+    background-color: var(--button-color-active);
+    transform: scale(0.95);
+    transition:
+      background-color 0.05,
+      transform 0.05s;
+  }
+
+  .current-lang {
+    height: var(--text-height);
+    display: flex;
+    align-items: center;
+  }
+
+  .lang-button {
+    width: 80px;
+    height: 20px;
+  }
+
+  .interacrive-part {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: var(--background);
+    border-radius: 20px;
+  }
+
   .main-window {
-    width: 640px;
+    width: 1040px;
     height: 360px;
-    background-color: aqua;
+    border: solid 2px #3c493f;
+    border-radius: 20px;
     margin: 0px;
     padding: 0px;
     display: flex;
@@ -421,6 +551,18 @@ main {
     align-items: center;
   }
 
+  #start-button {
+    width: 80px;
+    height: var(--text-height);
+    background-color: var(--button-color);
+  }
+
+  #start-button:hover {
+    animation-name: none;
+    background-color: #c9eddc;
+    transition: background-color 0.5s;
+  }
+
   div:focus {
     outline: none;
   }
@@ -432,6 +574,8 @@ main {
   .sentence-container {
     display: flex;
     justify-content: space-evenly;
+    font-size: 1.5em;
+    background-color: var(--background);
     .chunk-container {
       display: flex;
       justify-content: center;
@@ -459,11 +603,12 @@ main {
   }
 
   .level-button {
+    width: 100px;
     height: var(--text-height);
   }
 
   .level-selected {
-    background-color: blue;
+    background-color: var(--button-color-selected);
   }
 
   .time-bar {
@@ -472,6 +617,18 @@ main {
     width: v-bind('timeLimitStr');
     height: 20px;
     background-color: v-bind('timeBarColor');
+    transition: background-color 0.5s;
+  }
+
+  .mainwindow-focused {
+    box-shadow: inset 5px 5px 10px #99a69f;
+  }
+
+  .startbotton-focused {
+    animation-name: startbutton;
+    animation-duration: 2s;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
   }
 }
 </style>

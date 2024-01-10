@@ -190,7 +190,6 @@ defineProps({ isShift: Boolean })
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: chartreuse;
   width: 640px;
   height: 200px;
 }
@@ -198,20 +197,21 @@ defineProps({ isShift: Boolean })
 .keyboard {
   --key-size: 40px;
   --row-gap: 15px;
-  --row-base-margin: -15px;
+  --row-base-margin: -20px;
   .keyboard-row {
     display: flex;
     padding: 2px 0;
     .keyboard-key {
       width: var(--key-size);
       height: var(--key-size);
-      background-color: whitesmoke;
-      border: 1px solid black;
+      background-color: #f0f7f4;
+      border: 2px solid #3c493f;
+      border-radius: 5px;
       text-align: center;
       margin: 0 2px;
     }
     .key-pressed {
-      background-color: rgb(177, 177, 177);
+      background-color: #c9eddc;
     }
   }
 

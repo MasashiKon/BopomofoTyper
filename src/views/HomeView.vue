@@ -281,7 +281,7 @@ const detectKeyup = (e: KeyboardEvent | null, clickedKey?: string) => {
   if (key === 'Shift') {
     isShift.value = false
   } else {
-    const targetKey = findTargetKey(keys, key)
+    const targetKey = findTargetKey(keys, key)   
     if (targetKey) {
       targetKey.classList.remove('key-pressed')
     }
@@ -310,6 +310,18 @@ const displayAddedTime = (time: number) => {
   setTimeout(() => {
     addedTime.shift()
   }, 600)
+}
+
+const toggleShift = () => {
+  const shiftKeyDiv = document.querySelector('#shift-key')
+  if (!shiftKeyDiv) return
+  if (!isShift.value) {
+    isShift.value = true
+    shiftKeyDiv.classList.add('key-pressed')
+  } else {
+    isShift.value = false
+    shiftKeyDiv.classList.remove('key-pressed')
+  }
 }
 </script>
 
@@ -454,6 +466,7 @@ const displayAddedTime = (time: number) => {
             :isShift="isShift"
             @detectKeydown="(key) => detectKeydown(null, key)"
             @detectKeyup="(key) => detectKeyup(null, key)"
+            @toggleShift="toggleShift"
           />
         </div>
       </div>

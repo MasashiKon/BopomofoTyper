@@ -8,8 +8,8 @@ defineProps({ isShift: Boolean })
       <div class="keyboard-row">
         <div
           class="keyboard-key"
-          @mousedown.stop="$emit('detectKeydown', '1')"
-          @mouseup="$emit('detectKeyup', '1')"
+          @mousedown.stop="!isShift ? $emit('detectKeydown', '1') : $emit('detectKeydown', '!')"
+          @mouseup="!isShift ? $emit('detectKeyup', '1') : $emit('detectKeyup', '!')"
         >
           <div>1</div>
           <div v-if="!isShift">ㄅ</div>
@@ -319,8 +319,8 @@ defineProps({ isShift: Boolean })
         </div>
         <div
           class="keyboard-key"
-          @mousedown.stop="$emit('detectKeydown', ',')"
-          @mouseup="$emit('detectKeyup', ',')"
+          @mousedown.stop="!isShift ? $emit('detectKeydown', ',') : $emit('detectKeydown', '<')"
+          @mouseup="!isShift ? $emit('detectKeyup', ',') : $emit('detectKeyup', '<')"
         >
           <div>,</div>
           <div v-if="!isShift">ㄝ</div>
@@ -328,8 +328,8 @@ defineProps({ isShift: Boolean })
         </div>
         <div
           class="keyboard-key"
-          @mousedown.stop="$emit('detectKeydown', '.')"
-          @mouseup="$emit('detectKeyup', '.')"
+          @mousedown.stop="!isShift ? $emit('detectKeydown', '.') : $emit('detectKeydown', '>')"
+          @mouseup="!isShift ? $emit('detectKeyup', '.') : $emit('detectKeyup', '>')"
         >
           <div>.</div>
           <div v-if="!isShift">ㄡ</div>
@@ -337,12 +337,17 @@ defineProps({ isShift: Boolean })
         </div>
         <div
           class="keyboard-key"
-          @mousedown.stop="$emit('detectKeydown', '/')"
-          @mouseup="$emit('detectKeyup', '/')"
+          @mousedown.stop="!isShift ? $emit('detectKeydown', '/') : $emit('detectKeydown', '?')"
+          @mouseup="!isShift ? $emit('detectKeyup', '/') : $emit('detectKeyup', '?')"
         >
           <div>/</div>
           <div v-if="!isShift">ㄥ</div>
           <div v-else>？</div>
+        </div>
+        <div class="keyboard-key" id="shift-key" @click.stop="$emit('toggleShift')">
+          <div>Shift</div>
+          <div v-if="!isShift">Off</div>
+          <div v-else>On</div>
         </div>
       </div>
     </div>

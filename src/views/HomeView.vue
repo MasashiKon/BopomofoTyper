@@ -158,25 +158,27 @@ onMounted(() => {
   keys = [...document.getElementsByClassName('keyboard-key')]
 })
 
-const findTargetKey = (arr: Element[], e: KeyboardEvent) => {
+const findTargetKey = (arr: Element[], passedKey: string) => {
   return arr.find((key: Element) => {
     return (
-      key.firstChild?.textContent === e.key.toUpperCase() ||
-      (e.key === '?' && key.lastChild?.textContent === '？') ||
-      (e.key === '!' && key.lastChild?.textContent === '！') ||
-      (e.key === '<' && key.lastChild?.textContent === '，、') ||
-      (e.key === '>' && key.lastChild?.textContent === '。')
+      key.firstChild?.textContent === passedKey.toUpperCase() ||
+      (passedKey === '?' && key.lastChild?.textContent === '？') ||
+      (passedKey === '!' && key.lastChild?.textContent === '！') ||
+      (passedKey === '<' && key.lastChild?.textContent === '，、') ||
+      (passedKey === '>' && key.lastChild?.textContent === '。')
     )
   })
 }
 
-const detectKeydown = (e: KeyboardEvent) => {
+const detectKeydown = (e: KeyboardEvent | null, clickedKey?: string) => {
   if (gameState.value === GameState.playing) {
     if (!kanjiArr.value || !kanjiArr.value.length) return
-    if (e.key === 'Shift') {
+    const key = e?.key || clickedKey
+    if (!key) return
+    if (key === 'Shift') {
       isShift.value = true
     } else {
-      const targetKey = findTargetKey(keys, e)
+      const targetKey = findTargetKey(keys, key)
       if (targetKey) {
         targetKey.classList.add('key-pressed')
       }
@@ -219,12 +221,12 @@ const detectKeydown = (e: KeyboardEvent) => {
       }
     }
 
-    if (e.key === getCorrespondingKeys(answer.char, lang.value)) {
+    if (key === getCorrespondingKeys(answer.char, lang.value)) {
       answer.done = true
       if (answer2) answer2.done = true
 
       evaluateStatus()
-    } else if (answer2 && e.key === getCorrespondingKeys(answer2.char, lang.value)) {
+    } else if (answer2 && key === getCorrespondingKeys(answer2.char, lang.value)) {
       answer2.done = true
       while (kanjiArr.value[0].zhuyin.length > 0) {
         kanjiArr.value[0].zhuyin.shift()
@@ -241,6 +243,7 @@ const detectKeydown = (e: KeyboardEvent) => {
       evaluateStatus()
     }
   } else if (gameState.value === GameState.stop) {
+    if (!e) return
     if (e.key === 'ArrowUp') {
       switch (level.value) {
         case Level.easy:
@@ -272,11 +275,13 @@ const detectKeydown = (e: KeyboardEvent) => {
   }
 }
 
-const detectKeyup = (e: KeyboardEvent) => {
-  if (e.key === 'Shift') {
+const detectKeyup = (e: KeyboardEvent | null, clickedKey?: string) => {
+  const key = e?.key || clickedKey
+  if (!key) return
+  if (key === 'Shift') {
     isShift.value = false
   } else {
-    const targetKey = findTargetKey(keys, e)
+    const targetKey = findTargetKey(keys, key)
     if (targetKey) {
       targetKey.classList.remove('key-pressed')
     }
@@ -445,7 +450,11 @@ const displayAddedTime = (time: number) => {
               </button>
             </div>
           </div>
-          <VisualKeyboard :isShift="isShift" />
+          <VisualKeyboard
+            :isShift="isShift"
+            @detectKeydown="(key) => detectKeydown(null, key)"
+            @detectKeyup="(key) => detectKeyup(null, key)"
+          />
         </div>
       </div>
     </div>
@@ -563,7 +572,7 @@ main {
     }
   }
 
-  .result-button-container{
+  .result-button-container {
     display: flex;
     flex-direction: column;
     align-items: center;

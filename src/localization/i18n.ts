@@ -24,7 +24,7 @@ i18next
       },
       ja: {
         translation: {
-          currentLang: '日本語',
+          currentLang: '日本語（変換モードを直接入力にして下さい）',
           translation: '翻訳',
           easy: 'かんたん',
           hard: 'むずかしい'

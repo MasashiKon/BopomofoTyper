@@ -281,7 +281,7 @@ const detectKeyup = (e: KeyboardEvent | null, clickedKey?: string) => {
   if (key === 'Shift') {
     isShift.value = false
   } else {
-    const targetKey = findTargetKey(keys, key)   
+    const targetKey = findTargetKey(keys, key)
     if (targetKey) {
       targetKey.classList.remove('key-pressed')
     }
@@ -422,7 +422,7 @@ const toggleShift = () => {
                   </ul>
                 </li>
               </ul>
-              <div v-else>Loading</div>
+              <div v-else>No sentence</div>
             </div>
             <div class="result-container" v-else-if="gameState === GameState.result">
               <div>Your score: {{ score }}</div>
@@ -502,172 +502,233 @@ const toggleShift = () => {
   }
 }
 
-main {
+* {
   --text-height: 30px;
   --background: #d2dbd6;
   --button-color: #b3bfb8;
   --button-color-active: #d2dbd6;
   --button-color-selected: #7e8d85;
+}
+
+main {
   padding: 0;
   margin: 0;
   display: flex;
   justify-content: center;
+}
 
-  button {
-    background-color: var(--button-color);
-    border-radius: 3px;
-    border: solid 1px #3c493f;
-    margin: 1px;
-    outline: none;
+button {
+  background-color: var(--button-color);
+  border-radius: 3px;
+  border: solid 1px #3c493f;
+  margin: 1px;
+  outline: none;
+}
+
+button:hover {
+  background-color: var(--button-color-selected);
+  transition: background-color 0.2s;
+}
+
+button:active {
+  background-color: var(--button-color-active);
+  transform: scale(0.95);
+  transition:
+    background-color 0.05,
+    transform 0.05s;
+}
+
+.current-lang {
+  height: var(--text-height);
+  display: flex;
+  align-items: center;
+}
+
+.lang-button {
+  width: 80px;
+  height: 20px;
+}
+
+.interacrive-part {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: var(--background);
+  border-radius: 20px;
+}
+
+.main-window {
+  width: 100%;
+  border: solid 2px #3c493f;
+  border-radius: 20px;
+  margin: 0px;
+  padding: 0px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+.main-container {
+  position: relative;
+  width: 100%;
+  height: 50%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  align-items: center;
+}
+
+.result-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  div {
+    margin: 10px 0;
   }
+}
 
-  button:hover {
-    background-color: var(--button-color-selected);
-    transition: background-color 0.2s;
-  }
+.result-button-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 
-  button:active {
-    background-color: var(--button-color-active);
-    transform: scale(0.95);
-    transition:
-      background-color 0.05,
-      transform 0.05s;
-  }
+#start-button {
+  width: 80px;
+  height: var(--text-height);
+  background-color: var(--button-color);
+}
 
-  .current-lang {
-    height: var(--text-height);
-    display: flex;
-    align-items: center;
-  }
+#start-button:hover {
+  animation-name: none;
+  background-color: #c9eddc;
+  transition: background-color 0.5s;
+}
 
-  .lang-button {
-    width: 80px;
-    height: 20px;
-  }
+div:focus {
+  outline: none;
+}
 
-  .interacrive-part {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    background-color: var(--background);
-    border-radius: 20px;
-  }
+li {
+  list-style: none;
+}
 
-  .main-window {
-    width: 1040px;
-    height: 360px;
-    border: solid 2px #3c493f;
-    border-radius: 20px;
-    margin: 0px;
-    padding: 0px;
+.sentence-container {
+  display: flex;
+  justify-content: space-evenly;
+  font-size: 1.5em;
+  background-color: var(--background);
+  .chunk-container {
     display: flex;
     justify-content: center;
-    align-items: center;
-    overflow: hidden;
-  }
-
-  .main-container {
-    position: relative;
-    width: 100%;
-    height: 50%;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-evenly;
-    align-items: center;
-  }
-
-  .result-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    div {
-      margin: 10px 0;
-    }
-  }
-
-  .result-button-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  #start-button {
-    width: 80px;
-    height: var(--text-height);
-    background-color: var(--button-color);
-  }
-
-  #start-button:hover {
-    animation-name: none;
-    background-color: #c9eddc;
-    transition: background-color 0.5s;
-  }
-
-  div:focus {
-    outline: none;
-  }
-
-  li {
-    list-style: none;
-  }
-
-  .sentence-container {
-    display: flex;
-    justify-content: space-evenly;
-    font-size: 1.5em;
-    background-color: var(--background);
-    .chunk-container {
+    margin: 0 10px;
+    .kanji-container {
       display: flex;
-      justify-content: center;
-      margin: 0 10px;
-      .kanji-container {
+      text-align: center;
+      margin: 0 5px;
+      .zyuin-container {
         display: flex;
-        text-align: center;
-        margin: 0 5px;
-        .zyuin-container {
-          display: flex;
-          justify-content: center;
-        }
+        justify-content: center;
       }
     }
   }
+}
 
-  .pressed {
-    color: red;
+.pressed {
+  color: red;
+}
+
+.level-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+}
+
+.game-button {
+  width: 100px;
+  height: var(--text-height);
+}
+
+.level-selected {
+  background-color: var(--button-color-selected);
+}
+
+.time-bar {
+  position: absolute;
+  top: 0;
+  width: v-bind('timeLimitStr');
+  height: 20px;
+  background-color: v-bind('timeBarColor');
+}
+
+.mainwindow-focused {
+  box-shadow: inset 5px 5px 10px #99a69f;
+}
+
+.startbotton-focused {
+  animation-name: startbutton;
+  animation-duration: 2s;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+}
+
+@media screen and (min-width: 1040px) {
+  .interacrive-part {
+    width: 1040px;
   }
-
-  .level-container {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-evenly;
-  }
-
-  .game-button {
-    width: 100px;
-    height: var(--text-height);
-  }
-
-  .level-selected {
-    background-color: var(--button-color-selected);
-  }
-
-  .time-bar {
-    position: absolute;
-    top: 0;
-    width: v-bind('timeLimitStr');
-    height: 20px;
-    background-color: v-bind('timeBarColor');
-  }
-
-  .mainwindow-focused {
-    box-shadow: inset 5px 5px 10px #99a69f;
-  }
-
-  .startbotton-focused {
-    animation-name: startbutton;
-    animation-duration: 2s;
-    animation-iteration-count: infinite;
-    animation-direction: alternate;
+  .main-window {
+    height: 360px;
   }
 }
+
+@media screen and (min-width: 960px) and (max-width: 1039px) {
+  .interacrive-part {
+    width: 960px;
+  }
+  .main-window {
+    height: 360px;
+  }
+  .sentence-container {
+    font-size: 1.2em;
+  }
+}
+
+@media screen and (min-width: 600px) and (max-width: 959px) {
+  .interacrive-part {
+    width: 600px;
+  }
+  .main-window {
+    height: 150px;
+  }
+  .time-bar {
+    height: 15px;
+    top: -20px;
+  }
+  .sentence-container {
+    font-size: 1em;
+    .chunk-container {
+      margin: 0 5px;
+      .kanji-container {
+        margin: 0 2px;
+      }
+    }
+  }
+}
+
+/*@media screen and (min-width: 360px) and (max-width: 599px) {
+  .interacrive-part {
+    width: 360px;
+  }
+  .main-window {
+    height: 200px;
+  }
+  .time-bar {
+    height: 10px;
+    top: -30px;
+  }
+  .sentence-container {
+    font-size: 0.8em;
+  }
+}*/
 </style>

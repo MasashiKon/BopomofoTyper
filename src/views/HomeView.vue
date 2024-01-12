@@ -327,7 +327,7 @@ const toggleShift = () => {
 
 <template>
   <main>
-    <div>
+    <div class="main-content">
       <div class="current-lang">{{ $t('translation') }}: {{ $t('currentLang') }}</div>
       <button v-on:click="changeLanguage('en')" class="lang-button">English</button>
       <button v-on:click="changeLanguage('ja')" class="lang-button">Japanese</button>
@@ -471,6 +471,7 @@ const toggleShift = () => {
         </div>
       </div>
     </div>
+    <div class="highscore-container">uoooo</div>
   </main>
 </template>
 
@@ -508,6 +509,7 @@ const toggleShift = () => {
   --button-color: #b3bfb8;
   --button-color-active: #d2dbd6;
   --button-color-selected: #7e8d85;
+  --border-color: #3c493f;
 }
 
 main {
@@ -520,7 +522,7 @@ main {
 button {
   background-color: var(--button-color);
   border-radius: 3px;
-  border: solid 1px #3c493f;
+  border: solid 1px var(--border-color);
   margin: 1px;
   outline: none;
 }
@@ -536,6 +538,12 @@ button:active {
   transition:
     background-color 0.05,
     transform 0.05s;
+}
+
+.highscore-container {
+  border: solid var(--border-color) 2px;
+  border-radius: 10px;
+  background-color: var(--background);
 }
 
 .current-lang {
@@ -559,7 +567,7 @@ button:active {
 
 .main-window {
   width: 100%;
-  border: solid 2px #3c493f;
+  border: solid 2px var(--border-color);
   border-radius: 20px;
   margin: 0px;
   padding: 0px;
@@ -674,6 +682,22 @@ li {
 }
 
 @media screen and (min-width: 1040px) {
+  main {
+    display: grid;
+    grid-template-columns: 1fr 1040px 1fr;
+    gap: 5px
+  }
+  .main-content {
+    grid-column-start: 2;
+    justify-self: center;
+  }
+  .highscore-container {
+    grid-column-start: 3;
+    justify-self: center;
+    align-self: center;
+    width: 200px;
+    height: 400px;
+  }
   .interacrive-part {
     width: 1040px;
   }
@@ -683,6 +707,10 @@ li {
 }
 
 @media screen and (min-width: 960px) and (max-width: 1039px) {
+  main {
+    flex-direction: column;
+    align-items: center;
+  }
   .interacrive-part {
     width: 960px;
   }
@@ -694,7 +722,11 @@ li {
   }
 }
 
-@media screen and (min-width: 600px) and (max-width: 959px) {
+@media screen and (max-width: 959px) {
+  main {
+    flex-direction: column;
+    align-items: center;
+  }
   .interacrive-part {
     width: 600px;
   }
@@ -715,20 +747,4 @@ li {
     }
   }
 }
-
-/*@media screen and (min-width: 360px) and (max-width: 599px) {
-  .interacrive-part {
-    width: 360px;
-  }
-  .main-window {
-    height: 200px;
-  }
-  .time-bar {
-    height: 10px;
-    top: -30px;
-  }
-  .sentence-container {
-    font-size: 0.8em;
-  }
-}*/
 </style>

@@ -39,3 +39,9 @@ export type SentenceContainer = {
   high: Sentence[]
   low: Sentence[]
 }
+
+export type Ranker = {
+  name: string
+  score: number
+  date: Date
+}

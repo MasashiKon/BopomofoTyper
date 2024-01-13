@@ -104,3 +104,10 @@ export enum GameState {
   playing,
   result
 }
+
+export enum ScoreSendingState {
+  pending,
+  sending,
+  sent,
+  error
+}

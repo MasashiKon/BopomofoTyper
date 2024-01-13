@@ -346,8 +346,8 @@ defineProps({ isShift: Boolean })
         </div>
         <div class="keyboard-key" id="shift-key" @click.stop="$emit('toggleShift')">
           <div>Shift</div>
-          <div v-if="!isShift">Off</div>
-          <div v-else>On</div>
+          <div v-if="!isShift">On</div>
+          <div v-else>Off</div>
         </div>
       </div>
     </div>

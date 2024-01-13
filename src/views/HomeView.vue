@@ -1,17 +1,29 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
-import type { Kanji, ZhuyinChar, SentenceContainer } from '@/type/types'
-import { AvailableLang, LocalStrageName, Level, Notch, GameState } from '@/type/enums'
+import { createClient } from '@supabase/supabase-js'
+import type { Kanji, ZhuyinChar, SentenceContainer, Ranker } from '@/type/types'
+import {
+  AvailableLang,
+  LocalStrageName,
+  Level,
+  Notch,
+  GameState,
+  ScoreSendingState
+} from '@/type/enums'
 import getCorrespondingKeys from '@/utils/getCorrespondingKeys'
 import { isChuck, isWord } from '@/utils/verifyTypes'
 import fetchSentences from '@/utils/fetchSentences'
 import i18next from 'i18next'
 import VisualKeyboard from '@/components/VisualKeyboard.vue'
+import RankingContainer from '@/components/RankingContainer.vue'
 
 const gameTime = 120
+const supabase = createClient(import.meta.env.VITE_DB_URL_GEN, import.meta.env.VITE_DB_APIKEY)
 
 const isFocused = ref(false)
 const isShift = ref(false)
+const isRegisterFormOpen = ref(false)
+const scoreSendingState = ref(ScoreSendingState.pending)
 const gameState = ref(GameState.stop)
 const lang = ref(AvailableLang.en)
 const timeCount = ref(gameTime)
@@ -19,10 +31,13 @@ const frameCount = ref(0)
 const streak = ref(0)
 const timeLimit = ref(100)
 const score = ref(0)
+const rank = ref(0)
 const level = ref(localStorage.getItem(LocalStrageName.level) || Level.easy)
+const username = ref('')
 
 let keys: Element[]
 
+const rankers: Ranker[] = reactive([])
 const addedTime: number[] = reactive([])
 
 const sentences: SentenceContainer = reactive({
@@ -128,6 +143,9 @@ const initiateStatus = () => {
   timeCount.value = gameTime
   frameCount.value = 0
   score.value = 0
+  rank.value = 0
+  isRegisterFormOpen.value = false
+  scoreSendingState.value = ScoreSendingState.pending
   if (!interval) return
   clearInterval(interval)
   interval = null
@@ -154,8 +172,18 @@ const toggleGame = async () => {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
   keys = [...document.getElementsByClassName('keyboard-key')]
+
+  const { data: allRankers, error } = await supabase
+    .from('rankers')
+    .select()
+    .order('score', { ascending: false }) //.limit(100)
+  if (!error) {
+    allRankers.forEach((ranker) => {
+      rankers.push({ name: ranker.name, score: ranker.score, date: new Date(ranker.date) })
+    })
+  }
 })
 
 const findTargetKey = (arr: Element[], passedKey: string) => {
@@ -323,11 +351,47 @@ const toggleShift = () => {
     shiftKeyDiv.classList.remove('key-pressed')
   }
 }
+
+const registerUserScore = async () => {
+  scoreSendingState.value = ScoreSendingState.sending
+
+  const { data: newRanker, error } = await supabase
+    .from('rankers')
+    .insert([{ name: username.value, score: score.value }])
+    .select()
+  // .order('score', { ascending: false })
+  if (!error) {
+    const { data: allRankers, error } = await supabase
+      .from('rankers')
+      .select()
+      .order('score', { ascending: false }) //.limit(100)
+
+    if (!error) {
+      while (rankers.length > 0) {
+        rankers.shift()
+      }
+      allRankers.forEach((ranker) => {
+        rankers.push({ name: ranker.name, score: ranker.score, date: new Date(ranker.date) })
+      })
+      const rankedIndex = allRankers.findIndex((ranker) => ranker.id === newRanker[0].id)
+      if (rankedIndex >= 0) {
+        rank.value = rankedIndex + 1
+      } else {
+        rank.value = 0
+      }
+      scoreSendingState.value = ScoreSendingState.sent
+    } else {
+      scoreSendingState.value = ScoreSendingState.error
+    }
+  } else {
+    scoreSendingState.value = ScoreSendingState.error
+  }
+}
 </script>
 
 <template>
   <main>
-    <div>
+    <div class="main-content">
       <div class="current-lang">{{ $t('translation') }}: {{ $t('currentLang') }}</div>
       <button v-on:click="changeLanguage('en')" class="lang-button">English</button>
       <button v-on:click="changeLanguage('ja')" class="lang-button">Japanese</button>
@@ -426,9 +490,47 @@ const toggleShift = () => {
             </div>
             <div class="result-container" v-else-if="gameState === GameState.result">
               <div>Your score: {{ score }}</div>
-              <div class="result-button-container">
+              <div v-if="!isRegisterFormOpen" class="result-button-container">
                 <button @click.stop="toggleGame" class="game-button">Back to title</button>
                 <button @click.stop="startGame" class="game-button">Play again</button>
+                <button @click.stop="isRegisterFormOpen = true" class="game-button">
+                  Register score
+                </button>
+              </div>
+              <div v-else>
+                <div class="register-form" v-if="scoreSendingState === ScoreSendingState.pending">
+                  <label for="username">Your name</label><br />
+                  <input
+                    name="username"
+                    v-model="username"
+                    maxlength="25"
+                  /><br />
+                  <button class="game-button" @click.stop="registerUserScore">Submit</button>
+                </div>
+                <div
+                  class="result-container"
+                  v-else-if="scoreSendingState === ScoreSendingState.sending"
+                >
+                  Sending...
+                </div>
+                <div
+                  class="result-container"
+                  v-else-if="scoreSendingState === ScoreSendingState.sent"
+                >
+                  <div>Congrats!</div>
+                  <div>You've ranked in at No.{{ rank }}!</div>
+                  <button @click.stop="toggleGame" class="game-button">Back to title</button>
+                </div>
+                <div class="register-form" v-else>
+                  Sorry, Something went wrong.
+                  <button @click.stop="toggleGame" class="game-button">Back to title</button>
+                  <button
+                    @click.stop="scoreSendingState = ScoreSendingState.pending"
+                    class="game-button"
+                  >
+                    Send again
+                  </button>
+                </div>
               </div>
             </div>
             <div class="main-container" v-else>
@@ -471,6 +573,7 @@ const toggleShift = () => {
         </div>
       </div>
     </div>
+    <RankingContainer :rankers="rankers" />
   </main>
 </template>
 
@@ -508,6 +611,7 @@ const toggleShift = () => {
   --button-color: #b3bfb8;
   --button-color-active: #d2dbd6;
   --button-color-selected: #7e8d85;
+  --border-color: #3c493f;
 }
 
 main {
@@ -520,7 +624,7 @@ main {
 button {
   background-color: var(--button-color);
   border-radius: 3px;
-  border: solid 1px #3c493f;
+  border: solid 1px var(--border-color);
   margin: 1px;
   outline: none;
 }
@@ -559,7 +663,7 @@ button:active {
 
 .main-window {
   width: 100%;
-  border: solid 2px #3c493f;
+  border: solid 2px var(--border-color);
   border-radius: 20px;
   margin: 0px;
   padding: 0px;
@@ -583,12 +687,15 @@ button:active {
   display: flex;
   flex-direction: column;
   align-items: center;
-  div {
-    margin: 10px 0;
-  }
 }
 
 .result-button-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.register-form {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -610,7 +717,7 @@ div:focus {
   outline: none;
 }
 
-li {
+ul {
   list-style: none;
 }
 
@@ -674,15 +781,33 @@ li {
 }
 
 @media screen and (min-width: 1040px) {
+  main {
+    display: grid;
+    grid-template-columns: 1fr 1040px 1fr 1fr 1fr;
+    gap: 5px;
+  }
+  .main-content {
+    grid-column-start: 2;
+    justify-self: center;
+  }
   .interacrive-part {
     width: 1040px;
   }
   .main-window {
     height: 360px;
   }
+  .result-container {
+    div {
+      margin: 5px 0;
+    }
+  }
 }
 
 @media screen and (min-width: 960px) and (max-width: 1039px) {
+  main {
+    flex-direction: column;
+    align-items: center;
+  }
   .interacrive-part {
     width: 960px;
   }
@@ -692,9 +817,18 @@ li {
   .sentence-container {
     font-size: 1.2em;
   }
+  .result-container {
+    div {
+      margin: 5px 0;
+    }
+  }
 }
 
-@media screen and (min-width: 600px) and (max-width: 959px) {
+@media screen and (max-width: 959px) {
+  main {
+    flex-direction: column;
+    align-items: center;
+  }
   .interacrive-part {
     width: 600px;
   }
@@ -714,21 +848,10 @@ li {
       }
     }
   }
+  .result-container {
+    div {
+      margin: 5px 0;
+    }
+  }
 }
-
-/*@media screen and (min-width: 360px) and (max-width: 599px) {
-  .interacrive-part {
-    width: 360px;
-  }
-  .main-window {
-    height: 200px;
-  }
-  .time-bar {
-    height: 10px;
-    top: -30px;
-  }
-  .sentence-container {
-    font-size: 0.8em;
-  }
-}*/
 </style>

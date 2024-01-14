@@ -158,7 +158,9 @@ const moveToResult = () => {
   interval = null
 }
 
-const toggleGame = async () => {
+const toggleGame = (e: Event) => {
+  e.preventDefault()
+  e.stopPropagation()
   if (gameState.value === GameState.stop) {
     startGame()
   } else {
@@ -296,7 +298,7 @@ const detectKeydown = (e: KeyboardEvent | null, clickedKey?: string) => {
       }
     } else if (e.key === 'Enter') {
       const target = e.target as HTMLDivElement
-      const startButton = target.querySelector('#start-button') as HTMLButtonElement
+      const startButton = target.querySelector('#start-button') as HTMLDivElement
       if (!startButton) return
       startButton.click()
     }
@@ -323,11 +325,11 @@ const changeLanguage = (lang: string) => {
 
 const setLevel = (e: MouseEvent) => {
   if (!e.target) return
-  const button = e.target as HTMLButtonElement
-  if (button.value === Level.easy) {
+  const button = e.target as HTMLDivElement
+  if (button.getAttribute('data-value') === Level.easy) {
     level.value = Level.easy
     localStorage.setItem(LocalStrageName.level, Level.easy)
-  } else if (button.value === Level.hard) {
+  } else if (button.getAttribute('data-value') === Level.hard) {
     level.value = Level.hard
     localStorage.setItem(LocalStrageName.level, Level.hard)
   }
@@ -398,6 +400,7 @@ const registerUserScore = async () => {
       <div
         id="game-container"
         tabindex="0"
+        autofocus
         @keydown="detectKeydown"
         @keyup="detectKeyup"
         @focus="
@@ -405,7 +408,7 @@ const registerUserScore = async () => {
             isFocused = true
           }
         "
-        @blur="
+        @blur.prevent="
           () => {
             isFocused = false
           }
@@ -491,21 +494,18 @@ const registerUserScore = async () => {
             <div class="result-container" v-else-if="gameState === GameState.result">
               <div>Your score: {{ score }}</div>
               <div v-if="!isRegisterFormOpen" class="result-button-container">
-                <button @click.stop="toggleGame" class="game-button">Back to title</button>
-                <button @click.stop="startGame" class="game-button">Play again</button>
-                <button @click.stop="isRegisterFormOpen = true" class="game-button">
-                  Register score
-                </button>
+                <div @click.stop="toggleGame" class="game-button">{{ $t('backtotitle') }}</div>
+                <div @click.stop="startGame" class="game-button">{{ $t('playAgain') }}</div>
+                <div @click.stop="isRegisterFormOpen = true" class="game-button">
+                  {{ $t('registerScore') }}
+                </div>
               </div>
               <div v-else>
                 <div class="register-form" v-if="scoreSendingState === ScoreSendingState.pending">
-                  <label for="username">Your name</label><br />
-                  <input
-                    name="username"
-                    v-model="username"
-                    maxlength="25"
-                  /><br />
-                  <button class="game-button" @click.stop="registerUserScore">Submit</button>
+                  <label for="username">{{ $t('yourName') }}</label
+                  ><br />
+                  <input name="username" v-model="username" maxlength="25" /><br />
+                  <div class="game-button" @click.stop="registerUserScore">{{ $t('submit') }}</div>
                 </div>
                 <div
                   class="result-container"
@@ -517,51 +517,52 @@ const registerUserScore = async () => {
                   class="result-container"
                   v-else-if="scoreSendingState === ScoreSendingState.sent"
                 >
-                  <div>Congrats!</div>
-                  <div>You've ranked in at No.{{ rank }}!</div>
-                  <button @click.stop="toggleGame" class="game-button">Back to title</button>
+                  <div>{{ $t('congrats') }}</div>
+                  <div>{{ $t('rank', { count: rank, ordinal: true }) }}</div>
+                  <div @click.stop="toggleGame" class="game-button">{{ $t('backtotitle') }}</div>
                 </div>
                 <div class="register-form" v-else>
                   Sorry, Something went wrong.
-                  <button @click.stop="toggleGame" class="game-button">Back to title</button>
-                  <button
+                  <div @click.stop="toggleGame" class="game-button">{{ $t('backtotitle') }}</div>
+                  <div
                     @click.stop="scoreSendingState = ScoreSendingState.pending"
                     class="game-button"
                   >
-                    Send again
-                  </button>
+                    {{ $t('sendAgain') }}
+                  </div>
                 </div>
               </div>
             </div>
             <div class="main-container" v-else>
               <div>Bopomofo Typer(beta)</div>
               <div class="level-container">
-                <button
+                <div
                   class="game-button"
                   :class="[level === Level.easy ? 'level-selected' : '']"
-                  :value="Level.easy"
+                  :data-value="Level.easy"
                   @click.stop="setLevel"
                 >
                   {{ $t('easy') }}
-                </button>
-                <button
+                </div>
+                <div
                   class="game-button"
                   :class="[level === Level.hard ? 'level-selected' : '']"
-                  :value="Level.hard"
+                  :data-value="Level.hard"
                   @click.stop="setLevel"
                 >
                   {{ $t('hard') }}
-                </button>
+                </div>
               </div>
-              <button
-                @click="toggleGame"
+              <div
+                @click.prevent="toggleGame"
                 id="start-button"
+                class="game-button"
                 :class="{
                   'startbotton-focused': isFocused
                 }"
               >
-                Start
-              </button>
+                {{ $t('start') }}
+              </div>
             </div>
           </div>
           <VisualKeyboard
@@ -710,7 +711,9 @@ button:active {
 #start-button:hover {
   animation-name: none;
   background-color: #c9eddc;
-  transition: background-color 0.5s;
+  transition:
+    background-color 0.5s,
+    transform 0.2s;
 }
 
 div:focus {
@@ -753,8 +756,21 @@ ul {
 }
 
 .game-button {
-  width: 100px;
+  width: 120px;
   height: var(--text-height);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--button-color);
+  border-radius: 3px;
+  border: solid 1px var(--border-color);
+  margin: 1px;
+  user-select: none;
+  transition: transform 0.2s;
+}
+
+.game-button:active {
+  transform: scale(0.95);
 }
 
 .level-selected {

@@ -5,13 +5,13 @@ defineProps({ rankers: Array<Ranker> })
 
 <template>
   <div class="highscore-container">
-    <div class="highscore-title">High Score</div>
+    <div class="highscore-title">{{ $t('highScore') }}</div>
     <div v-if="rankers?.length">
       <ol>
         <li v-for="ranker of rankers" :key="ranker.name + ranker.date.getUTCDate()">
           <div class="ranker-container">
-            <div>Name: {{ ranker.name }}</div>
-            <div>Score: {{ ranker.score }}</div>
+            <div>{{ $t('name') }}: {{ ranker.name }}</div>
+            <div>{{ $t('score') }}: {{ ranker.score }}</div>
             <div>
               {{
                 `${ranker.date.getFullYear()}/${

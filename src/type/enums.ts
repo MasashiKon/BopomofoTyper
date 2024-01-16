@@ -86,7 +86,9 @@ export enum AvailableLang {
 
 export enum LocalStrageName {
   userLang = 'user-lang',
-  level = 'level'
+  level = 'level',
+  volume = 'volume',
+  isVolumeOn = 'is-volume-on'
 }
 
 export enum Level {

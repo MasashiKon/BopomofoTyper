@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { createClient } from '@supabase/supabase-js'
 import type { Kanji, ZhuyinChar, SentenceContainer, Ranker } from '@/type/types'
 import {
@@ -18,7 +18,10 @@ import VisualKeyboard from '@/components/VisualKeyboard.vue'
 import RankingContainer from '@/components/RankingContainer.vue'
 
 const gameTime = 120
+const baseVolume = 1
 const supabase = createClient(import.meta.env.VITE_DB_URL_GEN, import.meta.env.VITE_DB_APIKEY)
+let hitKeySound: HTMLAudioElement | null
+let popSound: HTMLAudioElement | null
 
 const isFocused = ref(false)
 const isShift = ref(false)
@@ -34,6 +37,10 @@ const score = ref(0)
 const rank = ref(0)
 const level = ref(localStorage.getItem(LocalStrageName.level) || Level.easy)
 const username = ref('')
+const volume = ref(localStorage.getItem(LocalStrageName.volume) || '50')
+const isVolumeOn = ref(
+  localStorage.getItem(LocalStrageName.isVolumeOn) === 'true' ? true : false || false
+)
 
 let keys: Element[]
 
@@ -144,6 +151,7 @@ const initiateStatus = () => {
   frameCount.value = 0
   score.value = 0
   rank.value = 0
+  streak.value = 0
   isRegisterFormOpen.value = false
   scoreSendingState.value = ScoreSendingState.pending
   if (!interval) return
@@ -174,6 +182,13 @@ const toggleGame = (e: Event) => {
   }
 }
 
+const setVolume = () => {
+  if (!hitKeySound || !popSound) return
+  hitKeySound.volume = (baseVolume * Number(volume.value)) / 100
+  popSound.volume = (baseVolume * Number(volume.value)) / 100
+  localStorage.setItem(LocalStrageName.volume, volume.value)
+}
+
 onMounted(async () => {
   keys = [...document.getElementsByClassName('keyboard-key')]
 
@@ -186,6 +201,10 @@ onMounted(async () => {
       rankers.push({ name: ranker.name, score: ranker.score, date: new Date(ranker.date) })
     })
   }
+
+  hitKeySound = new Audio('/sounds/hit-key.mp3')
+  popSound = new Audio('/sounds/pop.mp3')
+  setVolume()
 })
 
 const findTargetKey = (arr: Element[], passedKey: string) => {
@@ -199,6 +218,10 @@ const findTargetKey = (arr: Element[], passedKey: string) => {
     )
   })
 }
+
+watch(volume, () => {
+  setVolume()
+})
 
 const detectKeydown = (e: KeyboardEvent | null, clickedKey?: string) => {
   if (gameState.value === GameState.playing) {
@@ -221,6 +244,12 @@ const detectKeydown = (e: KeyboardEvent | null, clickedKey?: string) => {
     }
     if (!answer) return
 
+    const playSound = (sound: HTMLAudioElement | null) => {
+      if (!sound || !isVolumeOn.value) return
+      sound.currentTime = 0
+      sound.play()
+    }
+
     const evaluateStatus = () => {
       score.value += 1
       if (kanjiArr.value[0].zhuyin.every((zhuyin) => zhuyin.done)) {
@@ -228,6 +257,9 @@ const detectKeydown = (e: KeyboardEvent | null, clickedKey?: string) => {
         kanjiArr.value.shift()
         timeLimit.value += 5
         score.value += 5
+        playSound(popSound)
+      } else {
+        playSound(hitKeySound)
       }
       if (!kanjiArr.value.length) {
         if (currentNotch.value === Notch.low) {
@@ -271,6 +303,8 @@ const detectKeydown = (e: KeyboardEvent | null, clickedKey?: string) => {
       }
 
       evaluateStatus()
+    } else {
+      playSound(hitKeySound)
     }
   } else if (gameState.value === GameState.stop) {
     if (!e) return
@@ -389,6 +423,14 @@ const registerUserScore = async () => {
     scoreSendingState.value = ScoreSendingState.error
   }
 }
+
+const toggleVolume = () => {
+  console.log(isVolumeOn.value)
+
+  isVolumeOn.value = !isVolumeOn.value
+  console.log(isVolumeOn.value)
+  localStorage.setItem(LocalStrageName.isVolumeOn, String(isVolumeOn.value))
+}
 </script>
 
 <template>
@@ -414,14 +456,40 @@ const registerUserScore = async () => {
           }
         "
       >
-        <div>
-          <span>Time: {{ timeCount }}</span
-          >&nbsp;
-          <span v-for="(time, index) in addedTime" v-bind:key="'time' + index"
-            >+{{ time }}&nbsp;</span
-          >
+        <div class="status-part">
+          <div>
+            <div>
+              <span>Time: {{ timeCount }}</span
+              >&nbsp;
+              <span v-for="(time, index) in addedTime" v-bind:key="'time' + index"
+                >+{{ time }}&nbsp;</span
+              >
+            </div>
+            <div>Score: {{ score }}</div>
+          </div>
+          <div>
+            <div @click="toggleVolume">
+              <font-awesome-icon
+                icon="fa-solid fa-volume-high"
+                v-if="isVolumeOn && Number(volume) >= 50"
+              />
+              <font-awesome-icon
+                icon="fa-solid fa-volume-low"
+                v-else-if="isVolumeOn && Number(volume) > 0"
+              />
+              <font-awesome-icon icon="fa-solid fa-volume-xmark" v-else /><br />
+            </div>
+            <input
+              type="range"
+              name="volume"
+              id=""
+              min="0"
+              max="100"
+              v-model="volume"
+              :disabled="!isVolumeOn"
+            />
+          </div>
         </div>
-        <div>Score: {{ score }}</div>
         <div class="interacrive-part">
           <div
             class="main-window"
@@ -654,6 +722,11 @@ button:active {
   height: 20px;
 }
 
+.status-part {
+  display: flex;
+  justify-content: space-between;
+}
+
 .interacrive-part {
   display: flex;
   flex-direction: column;
@@ -850,6 +923,7 @@ ul {
   }
   .main-window {
     height: 150px;
+    padding: 10px 0;
   }
   .time-bar {
     height: 15px;

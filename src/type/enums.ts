@@ -36,6 +36,7 @@ export enum Zhuyin {
   i = 'ㄧ',
   u = 'ㄨ',
   u2 = 'ㄩ',
+  tone1 = '⎵',
   tone2 = 'ˊ',
   tone3 = 'ˇ',
   tone4 = 'ˋ',

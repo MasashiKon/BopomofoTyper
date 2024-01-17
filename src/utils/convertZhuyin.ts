@@ -76,6 +76,8 @@ export default (keyword: string): Zhuyin => {
       return Zhuyin.u
     case 'u2':
       return Zhuyin.u2
+    case 'tone1':
+      return Zhuyin.tone1
     case 'tone2':
       return Zhuyin.tone2
     case 'tone3':

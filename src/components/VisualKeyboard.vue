@@ -263,6 +263,13 @@ defineProps({ isShift: Boolean })
       <div class="keyboard-row">
         <div
           class="keyboard-key"
+          @mousedown.stop="$emit('detectKeydown', ' ')"
+          @mouseup="$emit('detectKeyup', ' ')"
+        >
+          <div>Space</div>
+        </div>
+        <div
+          class="keyboard-key"
           @mousedown.stop="$emit('detectKeydown', 'z')"
           @mouseup="$emit('detectKeyup', 'z')"
         >
@@ -400,7 +407,7 @@ defineProps({ isShift: Boolean })
   }
 
   .keyboard-row:nth-child(4) {
-    margin-left: calc(var(--row-base-margin) + (var(--row-gap) * 4));
+    margin-left: calc(var(--row-base-margin) + (var(--row-gap)));
   }
 }
 </style>

@@ -59,6 +59,10 @@ const timeLimitStr = computed(() => {
 const currentNotch = computed(() => {
   if (streak.value > 5 && sentences.high.length) {
     return Notch.high
+  } else if (sentences.low.length) {
+    return Notch.low
+  } else if (sentences.high.length) {
+    return Notch.high
   } else {
     return Notch.low
   }
@@ -76,12 +80,12 @@ const timeBarColor = computed(() => {
 
 const currentSentence = computed(() => {
   if (!sentences.low.length && !sentences.high.length) return null
-  if (currentNotch.value === Notch.low && sentences.low.length) {
+  if (currentNotch.value === Notch.low) {
     return sentences.low[0]
-  } else if (currentNotch.value === Notch.high && sentences.high.length) {
+  } else if (currentNotch.value === Notch.high) {
     return sentences.high[0]
   } else {
-    return sentences.low[0]
+    return null
   }
 })
 
@@ -208,13 +212,17 @@ onMounted(async () => {
 })
 
 const findTargetKey = (arr: Element[], passedKey: string) => {
+  console.log(passedKey)
+
   return arr.find((key: Element) => {
     return (
       key.firstChild?.textContent === passedKey.toUpperCase() ||
       (passedKey === '?' && key.lastChild?.textContent === '？') ||
       (passedKey === '!' && key.lastChild?.textContent === '！') ||
       (passedKey === '<' && key.lastChild?.textContent === '，、') ||
-      (passedKey === '>' && key.lastChild?.textContent === '。')
+      (passedKey === '>' && key.lastChild?.textContent === '。') ||
+      (passedKey === ' ' && key.lastChild?.textContent === 'Space') ||
+      (passedKey === 'Shift' && key.firstChild?.textContent === 'Shift')
     )
   })
 }
@@ -230,11 +238,10 @@ const detectKeydown = (e: KeyboardEvent | null, clickedKey?: string) => {
     if (!key) return
     if (key === 'Shift') {
       isShift.value = true
-    } else {
-      const targetKey = findTargetKey(keys, key)
-      if (targetKey) {
-        targetKey.classList.add('key-pressed')
-      }
+    }
+    const targetKey = findTargetKey(keys, key)
+    if (targetKey) {
+      targetKey.classList.add('key-pressed')
     }
 
     const answer: ZhuyinChar | undefined = kanjiArr.value[0].zhuyin.find((zhuyin) => !zhuyin.done)
@@ -344,11 +351,10 @@ const detectKeyup = (e: KeyboardEvent | null, clickedKey?: string) => {
   if (!key) return
   if (key === 'Shift') {
     isShift.value = false
-  } else {
-    const targetKey = findTargetKey(keys, key)
-    if (targetKey) {
-      targetKey.classList.remove('key-pressed')
-    }
+  }
+  const targetKey = findTargetKey(keys, key)
+  if (targetKey) {
+    targetKey.classList.remove('key-pressed')
   }
 }
 
@@ -425,10 +431,7 @@ const registerUserScore = async () => {
 }
 
 const toggleVolume = () => {
-  console.log(isVolumeOn.value)
-
   isVolumeOn.value = !isVolumeOn.value
-  console.log(isVolumeOn.value)
   localStorage.setItem(LocalStrageName.isVolumeOn, String(isVolumeOn.value))
 }
 </script>
@@ -443,7 +446,7 @@ const toggleVolume = () => {
         id="game-container"
         tabindex="0"
         autofocus
-        @keydown="detectKeydown"
+        @keydown.prevent="detectKeydown"
         @keyup="detectKeyup"
         @focus="
           () => {

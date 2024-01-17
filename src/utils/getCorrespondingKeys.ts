@@ -96,6 +96,8 @@ export default (zhuyin: Zhuyin, lang: AvailableLang) => {
           return '<'
         case Zhuyin.douhao:
           return '>'
+        case Zhuyin.tone1:
+          return ' '
         default:
           return null
       }
@@ -193,6 +195,8 @@ export default (zhuyin: Zhuyin, lang: AvailableLang) => {
           return '<'
         case Zhuyin.douhao:
           return '>'
+        case Zhuyin.tone1:
+          return ' '
         default:
           return null
       }

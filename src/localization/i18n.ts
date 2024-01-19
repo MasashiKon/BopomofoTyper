@@ -35,6 +35,7 @@ i18next
           rank_ordinal_two:"You've ranked in at {{count}}nd place!", 
           rank_ordinal_few:"You've ranked in at {{count}}rd place!", 
           rank_ordinal_other:"You've ranked in at {{count}}st place!", 
+          verticalZhuyin: "Vertical Zhuyin"
         }
       },
       ja: {
@@ -54,7 +55,8 @@ i18next
           name: '名前',
           score: 'スコア',
           congrats: 'やったね！',
-          rank: '{{count}}位にランクインしました！'
+          rank: '{{count}}位にランクインしました！',
+          verticalZhuyin: "注音符：縦"
         }
       }
     }

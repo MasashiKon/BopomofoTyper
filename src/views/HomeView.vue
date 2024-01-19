@@ -41,6 +41,9 @@ const volume = ref(localStorage.getItem(LocalStrageName.volume) || '50')
 const isVolumeOn = ref(
   localStorage.getItem(LocalStrageName.isVolumeOn) === 'true' ? true : false || false
 )
+const verticalZhuyin = ref(
+  localStorage.getItem(LocalStrageName.verticalZhuyin) === 'true' ? true : false || false
+)
 
 let keys: Element[]
 
@@ -434,6 +437,11 @@ const toggleVolume = () => {
   isVolumeOn.value = !isVolumeOn.value
   localStorage.setItem(LocalStrageName.isVolumeOn, String(isVolumeOn.value))
 }
+
+const toggleVerticalZhuyin = () => {
+  verticalZhuyin.value = !verticalZhuyin.value
+  localStorage.setItem(LocalStrageName.verticalZhuyin, String(verticalZhuyin.value))
+}
 </script>
 
 <template>
@@ -500,67 +508,101 @@ const toggleVolume = () => {
               'mainwindow-focused': isFocused
             }"
           >
+            <div
+              class="game-button zhuyin-vertical"
+              :class="{ 'button-on': verticalZhuyin }"
+              @click="toggleVerticalZhuyin"
+            >
+              {{ $t('verticalZhuyin') }}
+            </div>
             <div class="main-container" v-if="gameState === GameState.playing">
               <div class="time-bar"></div>
-              <div>
-                {{ currentSentence ? $t(`sentence_${currentNotch}_${currentSentence.id}`) : '' }}
-              </div>
-              <ul v-if="currentSentence" class="sentence-container">
-                <li v-for="(chunk, cIndex) in currentSentence.chunks" :key="'chunk' + cIndex">
-                  <ul v-if="isChuck(chunk)" class="chunk-container">
-                    <li v-for="(word, wIndex) in chunk.word" :key="'word' + cIndex + wIndex">
-                      <ul v-if="isWord(word)" class="kanji-container">
-                        <li
-                          v-for="(kanji, kIndex) in word.kanji"
-                          :key="'kanji' + cIndex + wIndex + kIndex"
+              <div class="translation-and-sentence">
+                <div class="translation">
+                  {{ currentSentence ? $t(`sentence_${currentNotch}_${currentSentence.id}`) : '' }}
+                </div>
+                <ul v-if="currentSentence" class="sentence-container">
+                  <li v-for="(chunk, cIndex) in currentSentence.chunks" :key="'chunk' + cIndex">
+                    <ul v-if="isChuck(chunk)" class="chunk-container">
+                      <li v-for="(word, wIndex) in chunk.word" :key="'word' + cIndex + wIndex">
+                        <ul
+                          v-if="isWord(word)"
+                          class="kanji-container"
+                          :class="{ 'vertical-kanji-container': verticalZhuyin }"
                         >
-                          <div :class="{ pressed: kanji.done }">{{ kanji.display }}</div>
-                          <ul class="zyuin-container">
-                            <li
-                              v-for="(zhuyin, zIndex) in kanji.zhuyin"
-                              :key="'zhuin' + cIndex + wIndex + kIndex + zIndex"
-                              :class="{ pressed: zhuyin.done }"
-                            >
-                              {{ zhuyin.char }}
-                            </li>
-                          </ul>
-                        </li>
-                      </ul>
-                      <ul v-else class="kanji-container">
-                        <li>
-                          <div :class="{ pressed: word.done }">{{ word.display }}</div>
-                          <ul class="zyuin-container">
-                            <li
-                              v-for="(zhuyin, zIndex) in word.zhuyin"
-                              :key="'zhuin' + cIndex + wIndex + zIndex"
-                              :class="{ pressed: zhuyin.done }"
-                            >
-                              {{ zhuyin.char }}
-                            </li>
-                          </ul>
-                        </li>
-                      </ul>
-                    </li>
-                  </ul>
-                  <ul v-else class="chunk-container">
-                    <ul class="kanji-container">
-                      <li v-for="(kanji, kIndex) in chunk.kanji" :key="'kanji' + cIndex + kIndex">
-                        <div :class="{ pressed: kanji.done }">{{ kanji.display }}</div>
-                        <ul class="zyuin-container">
                           <li
-                            v-for="(zhuyin, zIndex) in kanji.zhuyin"
-                            :key="'zhuin' + cIndex + kIndex + zIndex"
-                            :class="{ pressed: zhuyin.done }"
+                            v-for="(kanji, kIndex) in word.kanji"
+                            :key="'kanji' + cIndex + wIndex + kIndex"
+                            :class="{ 'char-container': verticalZhuyin }"
                           >
-                            {{ zhuyin.char }}
+                            <div :class="{ pressed: kanji.done }">{{ kanji.display }}</div>
+                            <ul
+                              class="zyuin-container"
+                              :class="{ 'vertical-zyuin-container': verticalZhuyin }"
+                            >
+                              <li
+                                v-for="(zhuyin, zIndex) in kanji.zhuyin"
+                                :key="'zhuin' + cIndex + wIndex + kIndex + zIndex"
+                                :class="{ pressed: zhuyin.done }"
+                              >
+                                {{ zhuyin.char }}
+                              </li>
+                            </ul>
+                          </li>
+                        </ul>
+                        <ul
+                          v-else
+                          class="kanji-container"
+                          :class="{ 'vertical-kanji-container': verticalZhuyin }"
+                        >
+                          <li :class="{ 'char-container': verticalZhuyin }">
+                            <div :class="{ pressed: word.done }">{{ word.display }}</div>
+                            <ul
+                              class="zyuin-container"
+                              :class="{ 'vertical-zyuin-container': verticalZhuyin }"
+                            >
+                              <li
+                                v-for="(zhuyin, zIndex) in word.zhuyin"
+                                :key="'zhuin' + cIndex + wIndex + zIndex"
+                                :class="{ pressed: zhuyin.done }"
+                              >
+                                {{ zhuyin.char }}
+                              </li>
+                            </ul>
                           </li>
                         </ul>
                       </li>
                     </ul>
-                  </ul>
-                </li>
-              </ul>
-              <div v-else>No sentence</div>
+                    <ul v-else class="chunk-container">
+                      <ul
+                        class="kanji-container"
+                        :class="{ 'vertical-kanji-container': verticalZhuyin }"
+                      >
+                        <li
+                          v-for="(kanji, kIndex) in chunk.kanji"
+                          :key="'kanji' + cIndex + kIndex"
+                          :class="{ 'char-container': verticalZhuyin }"
+                        >
+                          <div :class="{ pressed: kanji.done }">{{ kanji.display }}</div>
+                          <ul
+                            class="zyuin-container"
+                            :class="{ 'vertical-zyuin-container': verticalZhuyin }"
+                          >
+                            <li
+                              v-for="(zhuyin, zIndex) in kanji.zhuyin"
+                              :key="'zhuin' + cIndex + kIndex + zIndex"
+                              :class="{ pressed: zhuyin.done }"
+                            >
+                              {{ zhuyin.char }}
+                            </li>
+                          </ul>
+                        </li>
+                      </ul>
+                    </ul>
+                  </li>
+                </ul>
+                <div v-else>No sentence</div>
+              </div>
             </div>
             <div class="result-container" v-else-if="gameState === GameState.result">
               <div>Your score: {{ score }}</div>
@@ -684,6 +726,7 @@ const toggleVolume = () => {
   --button-color-active: #d2dbd6;
   --button-color-selected: #7e8d85;
   --border-color: #3c493f;
+  --active-color: #c9eddc;
 }
 
 main {
@@ -786,7 +829,7 @@ button:active {
 
 #start-button:hover {
   animation-name: none;
-  background-color: #c9eddc;
+  background-color: var(--active-color);
   transition:
     background-color 0.5s,
     transform 0.2s;
@@ -800,25 +843,55 @@ ul {
   list-style: none;
 }
 
+.translation-and-sentence {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: absolute;
+  top: 50px;
+}
+
 .sentence-container {
   display: flex;
   justify-content: space-evenly;
   font-size: 1.5em;
   background-color: var(--background);
-  .chunk-container {
-    display: flex;
-    justify-content: center;
-    margin: 0 10px;
-    .kanji-container {
-      display: flex;
-      text-align: center;
-      margin: 0 5px;
-      .zyuin-container {
-        display: flex;
-        justify-content: center;
-      }
-    }
-  }
+}
+
+.chunk-container {
+  display: flex;
+  justify-content: center;
+  margin: 0 10px;
+}
+
+.kanji-container {
+  display: flex;
+  text-align: center;
+}
+
+.char-container {
+  display: flex;
+  margin: 10px;
+}
+
+.vertical-kanji-container {
+  margin: 0 5px;
+}
+
+.zyuin-container {
+  display: flex;
+  justify-content: center;
+}
+
+.vertical-zyuin-container {
+  flex-direction: column;
+  justify-content: left;
+}
+
+.zhuyin-vertical {
+  position: absolute;
+  top: 10px;
+  left: 10px;
 }
 
 .pressed {
@@ -861,6 +934,10 @@ ul {
   background-color: v-bind('timeBarColor');
 }
 
+.main-window {
+  position: relative;
+}
+
 .mainwindow-focused {
   box-shadow: inset 5px 5px 10px #99a69f;
 }
@@ -870,6 +947,10 @@ ul {
   animation-duration: 2s;
   animation-iteration-count: infinite;
   animation-direction: alternate;
+}
+
+.button-on {
+  background-color: var(--active-color);
 }
 
 @media screen and (min-width: 1040px) {
@@ -930,16 +1011,22 @@ ul {
   }
   .time-bar {
     height: 15px;
-    top: -20px;
+    top: 0px;
+  }
+  .translation-and-sentence {
+    top: 15px;
+  }
+  .translation {
+    font-size: 0.8em;
   }
   .sentence-container {
-    font-size: 1em;
-    .chunk-container {
-      margin: 0 5px;
-      .kanji-container {
-        margin: 0 2px;
-      }
-    }
+    font-size: 0.9em;
+  }
+  .chunk-container {
+    margin: 0 5px;
+  }
+  .kanji-container {
+    margin: 0 2px;
   }
   .result-container {
     div {

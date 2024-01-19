@@ -36,17 +36,17 @@ export enum Zhuyin {
   i = 'ㄧ',
   u = 'ㄨ',
   u2 = 'ㄩ',
-  tone1 = '⎵',
+  tone1 = '⎻',
   tone2 = 'ˊ',
   tone3 = 'ˇ',
   tone4 = 'ˋ',
   tone5 = '˙',
   exclamation = '!',
   question = '?',
-  juhao = "，",
-  douhao = "。",
-  dunhao = "、",
-  error = 'error',
+  juhao = '，',
+  douhao = '。',
+  dunhao = '、',
+  error = 'error'
 }
 
 export enum PartOfSpeech {
@@ -74,10 +74,10 @@ export enum MeanOfChunk {
   question = 'question',
   adnominalModifier = 'adnominalModifier',
   predicate = 'predicate',
-  object = "object",
-  mainClause = "mainClause",
-  subordinateClause = "subordinateClause",
-  timeClause = "timeClause"
+  object = 'object',
+  mainClause = 'mainClause',
+  subordinateClause = 'subordinateClause',
+  timeClause = 'timeClause'
 }
 
 export enum AvailableLang {
@@ -89,7 +89,8 @@ export enum LocalStrageName {
   userLang = 'user-lang',
   level = 'level',
   volume = 'volume',
-  isVolumeOn = 'is-volume-on'
+  isVolumeOn = 'is-volume-on',
+  verticalZhuyin = 'vertical-zhuyin'
 }
 
 export enum Level {

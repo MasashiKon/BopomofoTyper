@@ -267,6 +267,7 @@ defineProps({ isShift: Boolean })
           @mouseup="$emit('detectKeyup', ' ')"
         >
           <div>Space</div>
+          <div>‾</div>
         </div>
         <div
           class="keyboard-key"

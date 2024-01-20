@@ -8,7 +8,8 @@ import {
   Level,
   Notch,
   GameState,
-  ScoreSendingState
+  ScoreSendingState,
+  Zhuyin
 } from '@/type/enums'
 import getCorrespondingKeys from '@/utils/getCorrespondingKeys'
 import { isChuck, isWord } from '@/utils/verifyTypes'
@@ -44,6 +45,7 @@ const isVolumeOn = ref(
 const verticalZhuyin = ref(
   localStorage.getItem(LocalStrageName.verticalZhuyin) === 'true' ? true : false || false
 )
+const hideZhuyin = ref(true)
 
 let keys: Element[]
 
@@ -215,8 +217,6 @@ onMounted(async () => {
 })
 
 const findTargetKey = (arr: Element[], passedKey: string) => {
-  console.log(passedKey)
-
   return arr.find((key: Element) => {
     return (
       key.firstChild?.textContent === passedKey.toUpperCase() ||
@@ -228,6 +228,19 @@ const findTargetKey = (arr: Element[], passedKey: string) => {
       (passedKey === 'Shift' && key.firstChild?.textContent === 'Shift')
     )
   })
+}
+
+const isTone234 = (str: Zhuyin) => {
+  if (
+    str === Zhuyin.tone2 ||
+    str === Zhuyin.tone3 ||
+    str === Zhuyin.tone4 ||
+    str === Zhuyin.tone5
+  ) {
+    return true
+  } else {
+    return false
+  }
 }
 
 watch(volume, () => {
@@ -276,7 +289,7 @@ const detectKeydown = (e: KeyboardEvent | null, clickedKey?: string) => {
           score.value += 10
           sentences.low.shift()
         } else if (currentNotch.value === Notch.high) {
-          score.value += 25
+          score.value += 100
           sentences.high.shift()
         }
         streak.value++
@@ -545,7 +558,19 @@ const toggleVerticalZhuyin = () => {
                                 :key="'zhuin' + cIndex + wIndex + kIndex + zIndex"
                                 :class="{ pressed: zhuyin.done }"
                               >
-                                {{ zhuyin.char }}
+                                <div v-if="!hideZhuyin || zhuyin.done">
+                                  <span v-if="zhuyin.char === Zhuyin.tone1"></span>
+                                  <span
+                                    v-else
+                                    :class="{
+                                      'vertical-tones234': verticalZhuyin && isTone234(zhuyin.char),
+                                      'vertical-tones5':
+                                        verticalZhuyin && zhuyin.char === Zhuyin.tone5
+                                    }"
+                                  >
+                                    {{ zhuyin.char }}
+                                  </span>
+                                </div>
                               </li>
                             </ul>
                           </li>
@@ -566,7 +591,19 @@ const toggleVerticalZhuyin = () => {
                                 :key="'zhuin' + cIndex + wIndex + zIndex"
                                 :class="{ pressed: zhuyin.done }"
                               >
-                                {{ zhuyin.char }}
+                                <div v-if="!hideZhuyin || zhuyin.done">
+                                  <span v-if="zhuyin.char === Zhuyin.tone1"></span>
+                                  <span
+                                    v-else
+                                    :class="{
+                                      'vertical-tones234': verticalZhuyin && isTone234(zhuyin.char),
+                                      'vertical-tones5':
+                                        verticalZhuyin && zhuyin.char === Zhuyin.tone5
+                                    }"
+                                  >
+                                    {{ zhuyin.char }}
+                                  </span>
+                                </div>
                               </li>
                             </ul>
                           </li>
@@ -593,7 +630,19 @@ const toggleVerticalZhuyin = () => {
                               :key="'zhuin' + cIndex + kIndex + zIndex"
                               :class="{ pressed: zhuyin.done }"
                             >
-                              {{ zhuyin.char }}
+                              <div v-if="!hideZhuyin || zhuyin.done" class="">
+                                <span v-if="zhuyin.char === Zhuyin.tone1"></span>
+                                <span
+                                  v-else
+                                  :class="{
+                                    'vertical-tones234': verticalZhuyin && isTone234(zhuyin.char),
+                                    'vertical-tones5':
+                                      verticalZhuyin && zhuyin.char === Zhuyin.tone5
+                                  }"
+                                >
+                                  {{ zhuyin.char }}
+                                </span>
+                              </div>
                             </li>
                           </ul>
                         </li>
@@ -884,6 +933,8 @@ ul {
 }
 
 .vertical-zyuin-container {
+  position: relative;
+  width: 1em;
   flex-direction: column;
   justify-content: left;
 }
@@ -951,6 +1002,18 @@ ul {
 
 .button-on {
   background-color: var(--active-color);
+}
+
+.vertical-tones234 {
+  position: relative;
+  left: 0.5em;
+  top: -1.5em;
+}
+
+.vertical-tones5 {
+  position: absolute;
+  top: -0.2em;
+  left: 0.4em;
 }
 
 @media screen and (min-width: 1040px) {

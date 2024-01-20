@@ -56,7 +56,7 @@ i18next
           score: 'スコア',
           congrats: 'やったね！',
           rank: '{{count}}位にランクインしました！',
-          verticalZhuyin: "注音符：縦"
+          verticalZhuyin: "注音縦モード"
         }
       }
     }

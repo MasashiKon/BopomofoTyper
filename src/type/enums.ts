@@ -90,7 +90,8 @@ export enum LocalStrageName {
   level = 'level',
   volume = 'volume',
   isVolumeOn = 'is-volume-on',
-  verticalZhuyin = 'vertical-zhuyin'
+  verticalZhuyin = 'vertical-zhuyin',
+  hideZhuyin = 'hide-zhuyin'
 }
 
 export enum Level {

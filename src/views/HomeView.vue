@@ -45,7 +45,9 @@ const isVolumeOn = ref(
 const verticalZhuyin = ref(
   localStorage.getItem(LocalStrageName.verticalZhuyin) === 'true' ? true : false || false
 )
-const hideZhuyin = ref(true)
+const hideZhuyin = ref(
+  localStorage.getItem(LocalStrageName.hideZhuyin) === 'true' ? true : false || false
+)
 
 let keys: Element[]
 
@@ -455,6 +457,11 @@ const toggleVerticalZhuyin = () => {
   verticalZhuyin.value = !verticalZhuyin.value
   localStorage.setItem(LocalStrageName.verticalZhuyin, String(verticalZhuyin.value))
 }
+
+const toggleHideZhuyin = () => {
+  hideZhuyin.value = !hideZhuyin.value
+  localStorage.setItem(LocalStrageName.hideZhuyin, String(hideZhuyin.value))
+}
 </script>
 
 <template>
@@ -521,13 +528,23 @@ const toggleVerticalZhuyin = () => {
               'mainwindow-focused': isFocused
             }"
           >
-            <div
-              class="game-button zhuyin-vertical"
-              :class="{ 'button-on': verticalZhuyin }"
-              @click="toggleVerticalZhuyin"
-            >
-              {{ $t('verticalZhuyin') }}
+            <div class="toggles-container">
+              <div
+                class="game-button"
+                :class="{ 'button-on': verticalZhuyin }"
+                @click="toggleVerticalZhuyin"
+              >
+                {{ $t('verticalZhuyin') }}
+              </div>
+              <div
+                class="game-button"
+                :class="{ 'button-on': hideZhuyin }"
+                @click="toggleHideZhuyin"
+              >
+                {{ $t('hideZhuyin') }}
+              </div>
             </div>
+
             <div class="main-container" v-if="gameState === GameState.playing">
               <div class="time-bar"></div>
               <div class="translation-and-sentence">
@@ -939,7 +956,8 @@ ul {
   justify-content: left;
 }
 
-.zhuyin-vertical {
+.toggles-container {
+  display: flex;
   position: absolute;
   top: 10px;
   left: 10px;

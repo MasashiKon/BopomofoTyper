@@ -122,8 +122,13 @@ const kanjiArr = computed((): Kanji[] => {
 let interval: number | null
 
 const startGame = async () => {
+  while (sentences.low.length > 0) {
+    sentences.low.shift()
+  }
+  while (sentences.high.length > 0) {
+    sentences.high.shift()
+  }
   await fetchSentences(sentences, level.value as Level)
-
   gameState.value = GameState.playing
   timeLimit.value = 100
   timeCount.value = gameTime

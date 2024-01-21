@@ -653,8 +653,8 @@ const toggleHideZhuyin = () => {
                               :class="{ pressed: zhuyin.done }"
                             >
                               <div v-if="!hideZhuyin || zhuyin.done" class="">
-                                <span v-if="verticalZhuyin && zhuyin.char === Zhuyin.tone1">⎻</span>
-                                <span v-if="zhuyin.char === Zhuyin.tone1">⎻</span>
+                                <span v-if="verticalZhuyin && zhuyin.char === Zhuyin.tone1"></span>
+                                <span v-else-if="zhuyin.char === Zhuyin.tone1">⎻</span>
                                 <span
                                   v-else
                                   :class="{

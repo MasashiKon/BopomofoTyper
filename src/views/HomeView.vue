@@ -17,10 +17,12 @@ import fetchSentences from '@/utils/fetchSentences'
 import i18next from 'i18next'
 import VisualKeyboard from '@/components/VisualKeyboard.vue'
 import RankingContainer from '@/components/RankingContainer.vue'
+import { useTranslation } from 'i18next-vue'
 
-const gameTime = 120
+const gameTime = 1
 const baseVolume = 1
 const supabase = createClient(import.meta.env.VITE_DB_URL_GEN, import.meta.env.VITE_DB_APIKEY)
+const i18n = useTranslation()
 let hitKeySound: HTMLAudioElement | null
 let popSound: HTMLAudioElement | null
 
@@ -467,6 +469,16 @@ const toggleHideZhuyin = () => {
   hideZhuyin.value = !hideZhuyin.value
   localStorage.setItem(LocalStrageName.hideZhuyin, String(hideZhuyin.value))
 }
+
+const shareToSocial = () => {
+  window.open(
+    `https://twitter.com/compose/tweet?url=https://www.bopomofo-typer.com/&text=${i18n.t(
+      'socialMessage',
+      { count: score.value }
+    )}%0A%20%23BopomofoTyper%0A`
+  )
+  console.log(i18n.t('socialMessage'))
+}
 </script>
 
 <template>
@@ -549,7 +561,6 @@ const toggleHideZhuyin = () => {
                 {{ $t('hideZhuyin') }}
               </div>
             </div>
-
             <div class="main-container" v-if="gameState === GameState.playing">
               <div class="time-bar"></div>
               <div class="translation-and-sentence">
@@ -581,7 +592,10 @@ const toggleHideZhuyin = () => {
                                 :class="{ pressed: zhuyin.done }"
                               >
                                 <div v-if="!hideZhuyin || zhuyin.done">
-                                  <span v-if="zhuyin.char === Zhuyin.tone1"></span>
+                                  <span
+                                    v-if="verticalZhuyin && zhuyin.char === Zhuyin.tone1"
+                                  ></span>
+                                  <span v-else-if="zhuyin.char === Zhuyin.tone1">⎻</span>
                                   <span
                                     v-else
                                     :class="{
@@ -614,7 +628,10 @@ const toggleHideZhuyin = () => {
                                 :class="{ pressed: zhuyin.done }"
                               >
                                 <div v-if="!hideZhuyin || zhuyin.done">
-                                  <span v-if="zhuyin.char === Zhuyin.tone1"></span>
+                                  <span
+                                    v-if="verticalZhuyin && zhuyin.char === Zhuyin.tone1"
+                                  ></span>
+                                  <span v-else-if="zhuyin.char === Zhuyin.tone1">⎻</span>
                                   <span
                                     v-else
                                     :class="{
@@ -684,6 +701,11 @@ const toggleHideZhuyin = () => {
                 <div @click.stop="isRegisterFormOpen = true" class="game-button">
                   {{ $t('registerScore') }}
                 </div>
+                <font-awesome-icon
+                  icon="fa-brands fa-x-twitter"
+                  class="social-button"
+                  @click="shareToSocial"
+                />
               </div>
               <div v-else>
                 <div class="register-form" v-if="scoreSendingState === ScoreSendingState.pending">
@@ -827,6 +849,15 @@ button:active {
   transition:
     background-color 0.05,
     transform 0.05s;
+}
+
+.social-button {
+  border: solid 2px var(--border-color);
+  border-radius: 5px;
+}
+
+.social-button:hover {
+  cursor: pointer;
 }
 
 .current-lang {
@@ -990,7 +1021,14 @@ ul {
   border: solid 1px var(--border-color);
   margin: 1px;
   user-select: none;
-  transition: transform 0.2s;
+  transition:
+    transform 0.2s,
+    background-color 0.2s;
+}
+
+.game-button:hover {
+  background-color: var(--button-color-selected);
+  cursor: pointer;
 }
 
 .game-button:active {
@@ -1091,6 +1129,10 @@ ul {
   }
   .interacrive-part {
     width: 600px;
+  }
+  .toggles-container {
+    width: 580px;
+    justify-content: space-between;
   }
   .main-window {
     height: 150px;

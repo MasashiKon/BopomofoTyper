@@ -36,7 +36,9 @@ i18next
           rank_ordinal_few:"You've ranked in at {{count}}rd place!", 
           rank_ordinal_other:"You've ranked in at {{count}}st place!", 
           verticalZhuyin: "Vertical Zhuyin",
-          hideZhuyin: "Hide Zhuyin"
+          hideZhuyin: "Hide Zhuyin",
+          socialMessage_one: "You've got a {{count}} point!",
+          socialMessage_other: "You've got {{count}} points!"
         }
       },
       ja: {
@@ -58,7 +60,8 @@ i18next
           congrats: 'やったね！',
           rank: '{{count}}位にランクインしました！',
           verticalZhuyin: "注音縦モード",
-          hideZhuyin: "注音を隠す"
+          hideZhuyin: "注音を隠す",
+          socialMessage: "あなたの得点は{{count}}点でした！"
         }
       }
     }

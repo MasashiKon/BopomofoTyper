@@ -19,7 +19,7 @@ import VisualKeyboard from '@/components/VisualKeyboard.vue'
 import RankingContainer from '@/components/RankingContainer.vue'
 import { useTranslation } from 'i18next-vue'
 
-const gameTime = 1
+const gameTime = 120
 const baseVolume = 1
 const supabase = createClient(import.meta.env.VITE_DB_URL_GEN, import.meta.env.VITE_DB_APIKEY)
 const i18n = useTranslation()

@@ -16,9 +16,27 @@
     </script>
     <!-- End Google Tag Manager -->
     <meta charset="UTF-8" />
+    <meta name="description" id="descriptionTag" content="" />
     <link rel="icon" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>BopomofoTyper(beta)</title>
+    <script>
+      const userLang = navigator.language || navigator.userLanguage
+      const htmlElement = document.querySelector('html')
+      const titleTag = document.querySelector('title')
+      const descriptionTag = document.getElementById('descriptionTag')
+      if (userLang) {
+        if (userLang.startsWith('ja')) {
+          htmlElement.setAttribute('lang', 'ja')
+          titleTag.innerText = 'ボポモフォタイパー（ベータ版）'
+          descriptionTag.setAttribute('content', 'ボポモフォのタイピング練習ができるサイトです。')
+        } else {
+          htmlElement.setAttribute('lang', 'en')
+          titleTag.innerText = 'BopomofoTyper(beta)'
+          descriptionTag.setAttribute('content', "Let's practice Bopomofo typing!")
+        }
+      }
+    </script>
   </head>
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-L3SXTFXBC4"></script>

@@ -116,3 +116,8 @@ export enum ScoreSendingState {
   sent,
   error
 }
+
+export enum SocialMedia {
+  twitter,
+  facebook
+}

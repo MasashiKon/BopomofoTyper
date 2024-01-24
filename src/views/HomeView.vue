@@ -9,7 +9,8 @@ import {
   Notch,
   GameState,
   ScoreSendingState,
-  Zhuyin
+  Zhuyin,
+  SocialMedia
 } from '@/type/enums'
 import getCorrespondingKeys from '@/utils/getCorrespondingKeys'
 import { isChuck, isWord } from '@/utils/verifyTypes'
@@ -470,14 +471,22 @@ const toggleHideZhuyin = () => {
   localStorage.setItem(LocalStrageName.hideZhuyin, String(hideZhuyin.value))
 }
 
-const shareToSocial = () => {
-  window.open(
-    `https://twitter.com/compose/tweet?url=https://www.bopomofo-typer.com/&text=${i18n.t(
-      'socialMessage',
-      { count: score.value }
-    )}%0A%20%23BopomofoTyper%0A`
-  )
-  console.log(i18n.t('socialMessage'))
+const shareToSocial = (socialMedia: SocialMedia) => {
+  switch (socialMedia) {
+    case SocialMedia.twitter:
+      window.open(
+        `https://twitter.com/compose/tweet?url=https://www.bopomofo-typer.com/&text=${i18n.t(
+          'socialMessage',
+          { count: score.value }
+        )}%0A%0A%20%23BopomofoTyper%0A`
+      )
+      break
+    case SocialMedia.facebook:
+      window.open(
+        `https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fwww.bopomofo-typer.com%2F&amp;src=sdkpreparse`
+      )
+      break
+  }
 }
 </script>
 
@@ -701,11 +710,18 @@ const shareToSocial = () => {
                 <div @click.stop="isRegisterFormOpen = true" class="game-button">
                   {{ $t('registerScore') }}
                 </div>
-                <font-awesome-icon
-                  icon="fa-brands fa-x-twitter"
-                  class="social-button"
-                  @click="shareToSocial"
-                />
+                <div class="social-button-container">
+                  <font-awesome-icon
+                    icon="fa-brands fa-x-twitter"
+                    class="social-button"
+                    @click="() => shareToSocial(SocialMedia.twitter)"
+                  />
+                  <font-awesome-icon
+                    icon="fa-brands fa-facebook"
+                    class="social-button"
+                    @click="() => shareToSocial(SocialMedia.facebook)"
+                  />
+                </div>
               </div>
               <div v-else>
                 <div class="register-form" v-if="scoreSendingState === ScoreSendingState.pending">
@@ -851,9 +867,14 @@ button:active {
     transform 0.05s;
 }
 
+.social-button-container {
+  display: flex;
+}
+
 .social-button {
   border: solid 2px var(--border-color);
   border-radius: 5px;
+  margin: 0 2px;
 }
 
 .social-button:hover {

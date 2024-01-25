@@ -9,9 +9,9 @@ import i18n from './localization/i18n'
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faVolumeHigh, faVolumeLow, faVolumeXmark } from '@fortawesome/free-solid-svg-icons'
-import { faXTwitter, faFacebook } from '@fortawesome/free-brands-svg-icons' 
+import { faXTwitter, faFacebook, faMastodon } from '@fortawesome/free-brands-svg-icons' 
 
-library.add(faVolumeHigh, faVolumeLow, faVolumeXmark, faXTwitter, faFacebook)
+library.add(faVolumeHigh, faVolumeLow, faVolumeXmark, faXTwitter, faFacebook, faMastodon)
 
 const app = createApp(App)
 

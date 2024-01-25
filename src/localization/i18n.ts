@@ -23,7 +23,7 @@ i18next
           backtotitle: 'Back to title',
           playAgain: 'Play again',
           yourName: 'Your name',
-          submit:'Submit',
+          submit: 'Submit',
           sendAgain: 'Send again',
           registerScore: 'Register score',
           start: 'Start',
@@ -31,14 +31,17 @@ i18next
           name: 'Name',
           score: 'Score',
           congrats: 'Congrats!',
-          rank_ordinal_one:"You've ranked in at {{count}}st place!", 
-          rank_ordinal_two:"You've ranked in at {{count}}nd place!", 
-          rank_ordinal_few:"You've ranked in at {{count}}rd place!", 
-          rank_ordinal_other:"You've ranked in at {{count}}st place!", 
-          verticalZhuyin: "Vertical Zhuyin",
-          hideZhuyin: "Hide Zhuyin",
+          rank_ordinal_one: "You've ranked in at {{count}}st place!",
+          rank_ordinal_two: "You've ranked in at {{count}}nd place!",
+          rank_ordinal_few: "You've ranked in at {{count}}rd place!",
+          rank_ordinal_other: "You've ranked in at {{count}}st place!",
+          verticalZhuyin: 'Vertical Zhuyin',
+          hideZhuyin: 'Hide Zhuyin',
           socialMessage_one: "You've got a {{count}} point!",
-          socialMessage_other: "You've got {{count}} points!"
+          socialMessage_other: "You've got {{count}} points!",
+          english: 'English',
+          japanese: 'Japanese',
+          title: 'Bopomofo Typer(beta)'
         }
       },
       ja: {
@@ -50,7 +53,7 @@ i18next
           backtotitle: 'タイトルに戻る',
           playAgain: 'もう一回遊ぶ',
           yourName: '名前を入力',
-          submit:'送信',
+          submit: '送信',
           sendAgain: 'もう一度送信',
           registerScore: 'スコアを登録',
           start: 'スタート',
@@ -59,9 +62,12 @@ i18next
           score: 'スコア',
           congrats: 'やったね！',
           rank: '{{count}}位にランクインしました！',
-          verticalZhuyin: "注音縦モード",
-          hideZhuyin: "注音を隠す",
-          socialMessage: "あなたの得点は{{count}}点でした！"
+          verticalZhuyin: '注音縦モード',
+          hideZhuyin: '注音を隠す',
+          socialMessage: 'あなたの得点は{{count}}点でした！',
+          english: '英語',
+          japanese: '日本語',
+          title: 'ボポモフォとくだー（ベータ版）'
         }
       }
     }

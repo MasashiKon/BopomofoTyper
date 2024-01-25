@@ -75,6 +75,7 @@ ol {
 
 @media screen and (min-width: 1040px) {
   .highscore-container {
+    grid-row-start: 2;
     grid-column-start: 4;
     justify-self: center;
     align-self: center;

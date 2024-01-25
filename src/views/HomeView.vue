@@ -486,16 +486,23 @@ const shareToSocial = (socialMedia: SocialMedia) => {
         `https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fwww.bopomofo-typer.com%2F&amp;src=sdkpreparse`
       )
       break
+    case SocialMedia.mastodon:
+      window.open(
+        `https://mastodonshare.com/?text=${i18n.t('socialMessage', {
+          count: score.value
+        })}&url=https%3A%2F%2Fwww.bopomofo-typer.com`
+      )
   }
 }
 </script>
 
 <template>
   <main>
+    <h1>{{ $t('title') }}</h1>
     <div class="main-content">
       <div class="current-lang">{{ $t('translation') }}: {{ $t('currentLang') }}</div>
-      <button v-on:click="changeLanguage('en')" class="lang-button">English</button>
-      <button v-on:click="changeLanguage('ja')" class="lang-button">Japanese</button>
+      <button v-on:click="changeLanguage('en')" class="lang-button">{{ $t('english') }}</button>
+      <button v-on:click="changeLanguage('ja')" class="lang-button">{{ $t('japanese') }}</button>
       <div
         id="game-container"
         tabindex="0"
@@ -723,6 +730,11 @@ const shareToSocial = (socialMedia: SocialMedia) => {
                     class="social-button"
                     @click="() => shareToSocial(SocialMedia.facebook)"
                   />
+                  <font-awesome-icon
+                    icon="fa-brands fa-mastodon"
+                    class="social-button"
+                    @click="() => shareToSocial(SocialMedia.mastodon)"
+                  />
                 </div>
               </div>
               <div v-else>
@@ -759,7 +771,7 @@ const shareToSocial = (socialMedia: SocialMedia) => {
               </div>
             </div>
             <div class="main-container" v-else>
-              <div>Bopomofo Typer(beta)</div>
+              <div>{{ $t('title') }}</div>
               <div class="level-container">
                 <div
                   class="game-button"
@@ -846,6 +858,10 @@ main {
   margin: 0;
   display: flex;
   justify-content: center;
+}
+
+h1 {
+  margin: 10px 0;
 }
 
 button {
@@ -1110,10 +1126,16 @@ ul {
 @media screen and (min-width: 1040px) {
   main {
     display: grid;
+    grid-template-rows: 40px 1fr;
     grid-template-columns: 1fr 1040px 1fr 1fr 1fr;
     gap: 5px;
   }
+  h1 {
+    grid-column-start: 2;
+    text-align: center;
+  }
   .main-content {
+    grid-row-start: 2;
     grid-column-start: 2;
     justify-self: center;
   }

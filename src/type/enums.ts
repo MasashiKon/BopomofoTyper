@@ -120,5 +120,6 @@ export enum ScoreSendingState {
 
 export enum SocialMedia {
   twitter,
-  facebook
+  facebook,
+  mastodon
 }

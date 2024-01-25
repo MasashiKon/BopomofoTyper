@@ -41,7 +41,8 @@ i18next
           socialMessage_other: "You've got {{count}} points!",
           english: 'English',
           japanese: 'Japanese',
-          title: 'Bopomofo Typer(beta)'
+          title: 'Bopomofo Typer(beta)',
+          tag: 'BopomofoTyper'
         }
       },
       ja: {
@@ -67,7 +68,8 @@ i18next
           socialMessage: 'あなたの得点は{{count}}点でした！',
           english: '英語',
           japanese: '日本語',
-          title: 'ボポモフォとくだー（ベータ版）'
+          title: 'ボポモフォとくだー（ベータ版）',
+          tag: 'ボポモフォとくだー'
         }
       }
     }

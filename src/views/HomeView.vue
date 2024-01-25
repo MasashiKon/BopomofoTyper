@@ -478,7 +478,7 @@ const shareToSocial = (socialMedia: SocialMedia) => {
         `https://twitter.com/compose/tweet?url=https://www.bopomofo-typer.com/&text=${i18n.t(
           'socialMessage',
           { count: score.value }
-        )}%0A%0A%20%23BopomofoTyper%0A`
+        )}%0A%0A%20%23${i18n.t('tag')}%0A`
       )
       break
     case SocialMedia.facebook:
@@ -1126,7 +1126,7 @@ ul {
 @media screen and (min-width: 1040px) {
   main {
     display: grid;
-    grid-template-rows: 40px 1fr;
+    grid-template-rows: 50px 1fr;
     grid-template-columns: 1fr 1040px 1fr 1fr 1fr;
     gap: 5px;
   }

@@ -704,11 +704,13 @@ const shareToSocial = (socialMedia: SocialMedia) => {
             </div>
             <div class="result-container" v-else-if="gameState === GameState.result">
               <div>Your score: {{ score }}</div>
-              <div v-if="!isRegisterFormOpen" class="result-button-container">
-                <div @click.stop="toggleGame" class="game-button">{{ $t('backtotitle') }}</div>
-                <div @click.stop="startGame" class="game-button">{{ $t('playAgain') }}</div>
-                <div @click.stop="isRegisterFormOpen = true" class="game-button">
-                  {{ $t('registerScore') }}
+              <div v-if="!isRegisterFormOpen" class="result-interface-container">
+                <div class="result-button-container">
+                  <div @click.stop="toggleGame" class="game-button">{{ $t('backtotitle') }}</div>
+                  <div @click.stop="startGame" class="game-button">{{ $t('playAgain') }}</div>
+                  <div @click.stop="isRegisterFormOpen = true" class="game-button">
+                    {{ $t('registerScore') }}
+                  </div>
                 </div>
                 <div class="social-button-container">
                   <font-awesome-icon
@@ -928,6 +930,12 @@ button:active {
 }
 
 .result-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.result-interface-container {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1182,6 +1190,9 @@ ul {
     div {
       margin: 5px 0;
     }
+  }
+  .result-button-container {
+    flex-direction: row;
   }
 }
 </style>

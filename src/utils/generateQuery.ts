@@ -3,7 +3,7 @@ import { Level } from '@/type/enums'
 export default (level: Level, innerLevel: number): string => {
   //(filter: {id: {eq: }})
   return `{
-        sentences_${level}_${innerLevel}Collection {
+        sentences_${level}_${innerLevel}Collection(filter: {id: {eq: 12}}) {
           edges {
             node {
               id

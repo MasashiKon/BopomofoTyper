@@ -498,103 +498,186 @@ const shareToSocial = (socialMedia: SocialMedia) => {
 
 <template>
   <main>
-    <h1>{{ $t('title') }}</h1>
-    <div class="main-content">
-      <div class="current-lang">{{ $t('translation') }}: {{ $t('currentLang') }}</div>
-      <button v-on:click="changeLanguage('en')" class="lang-button">{{ $t('english') }}</button>
-      <button v-on:click="changeLanguage('ja')" class="lang-button">{{ $t('japanese') }}</button>
-      <div
-        id="game-container"
-        tabindex="0"
-        autofocus
-        @keydown.prevent="detectKeydown"
-        @keyup="detectKeyup"
-        @focus="
-          () => {
-            isFocused = true
-          }
-        "
-        @blur.prevent="
-          () => {
-            isFocused = false
-          }
-        "
-      >
-        <div class="status-part">
-          <div>
+    <section class="main-section">
+      <h1>{{ $t('title') }}</h1>
+      <div class="main-content">
+        <div class="current-lang">{{ $t('translation') }}: {{ $t('currentLang') }}</div>
+        <button v-on:click="changeLanguage('en')" class="lang-button">{{ $t('english') }}</button>
+        <button v-on:click="changeLanguage('ja')" class="lang-button">{{ $t('japanese') }}</button>
+        <div
+          id="game-container"
+          tabindex="0"
+          autofocus
+          @keydown.prevent="detectKeydown"
+          @keyup="detectKeyup"
+          @focus="
+            () => {
+              isFocused = true
+            }
+          "
+          @blur.prevent="
+            () => {
+              isFocused = false
+            }
+          "
+        >
+          <div class="status-part">
             <div>
-              <span>Time: {{ timeCount }}</span
-              >&nbsp;
-              <span v-for="(time, index) in addedTime" v-bind:key="'time' + index"
-                >+{{ time }}&nbsp;</span
-              >
-            </div>
-            <div>Score: {{ score }}</div>
-          </div>
-          <div>
-            <div @click="toggleVolume">
-              <font-awesome-icon
-                icon="fa-solid fa-volume-high"
-                v-if="isVolumeOn && Number(volume) >= 50"
-              />
-              <font-awesome-icon
-                icon="fa-solid fa-volume-low"
-                v-else-if="isVolumeOn && Number(volume) > 0"
-              />
-              <font-awesome-icon icon="fa-solid fa-volume-xmark" v-else /><br />
-            </div>
-            <input
-              type="range"
-              name="volume"
-              id=""
-              min="0"
-              max="100"
-              v-model="volume"
-              :disabled="!isVolumeOn"
-            />
-          </div>
-        </div>
-        <div class="interacrive-part">
-          <div
-            class="main-window"
-            :class="{
-              'mainwindow-focused': isFocused
-            }"
-          >
-            <div class="toggles-container">
-              <div
-                class="game-button"
-                :class="{ 'button-on': verticalZhuyin }"
-                @click="toggleVerticalZhuyin"
-              >
-                {{ $t('verticalZhuyin') }}
+              <div>
+                <span>Time: {{ timeCount }}</span
+                >&nbsp;
+                <span v-for="(time, index) in addedTime" v-bind:key="'time' + index"
+                  >+{{ time }}&nbsp;</span
+                >
               </div>
-              <div
-                class="game-button"
-                :class="{ 'button-on': hideZhuyin }"
-                @click="toggleHideZhuyin"
-              >
-                {{ $t('hideZhuyin') }}
-              </div>
+              <div>Score: {{ score }}</div>
             </div>
-            <div class="main-container" v-if="gameState === GameState.playing">
-              <div class="time-bar"></div>
-              <div class="translation-and-sentence">
-                <div class="translation">
-                  {{ currentSentence ? $t(`sentence_${currentNotch}_${currentSentence.id}`) : '' }}
+            <div>
+              <div @click="toggleVolume">
+                <font-awesome-icon
+                  icon="fa-solid fa-volume-high"
+                  v-if="isVolumeOn && Number(volume) >= 50"
+                />
+                <font-awesome-icon
+                  icon="fa-solid fa-volume-low"
+                  v-else-if="isVolumeOn && Number(volume) > 0"
+                />
+                <font-awesome-icon icon="fa-solid fa-volume-xmark" v-else /><br />
+              </div>
+              <input
+                type="range"
+                name="volume"
+                id=""
+                min="0"
+                max="100"
+                v-model="volume"
+                :disabled="!isVolumeOn"
+              />
+            </div>
+          </div>
+          <div class="interacrive-part">
+            <div
+              class="main-window"
+              :class="{
+                'mainwindow-focused': isFocused
+              }"
+            >
+              <div class="toggles-container">
+                <div
+                  class="game-button"
+                  :class="{ 'button-on': verticalZhuyin }"
+                  @click="toggleVerticalZhuyin"
+                >
+                  {{ $t('verticalZhuyin') }}
                 </div>
-                <ul v-if="currentSentence" class="sentence-container">
-                  <li v-for="(chunk, cIndex) in currentSentence.chunks" :key="'chunk' + cIndex">
-                    <ul v-if="isChuck(chunk)" class="chunk-container">
-                      <li v-for="(word, wIndex) in chunk.word" :key="'word' + cIndex + wIndex">
+                <div
+                  class="game-button"
+                  :class="{ 'button-on': hideZhuyin }"
+                  @click="toggleHideZhuyin"
+                >
+                  {{ $t('hideZhuyin') }}
+                </div>
+              </div>
+              <div class="main-container" v-if="gameState === GameState.playing">
+                <div class="time-bar"></div>
+                <div class="translation-and-sentence">
+                  <div class="translation">
+                    {{
+                      currentSentence ? $t(`sentence_${currentNotch}_${currentSentence.id}`) : ''
+                    }}
+                  </div>
+                  <ul v-if="currentSentence" class="sentence-container">
+                    <li v-for="(chunk, cIndex) in currentSentence.chunks" :key="'chunk' + cIndex">
+                      <ul v-if="isChuck(chunk)" class="chunk-container">
+                        <li v-for="(word, wIndex) in chunk.word" :key="'word' + cIndex + wIndex">
+                          <ul
+                            v-if="isWord(word)"
+                            class="kanji-container"
+                            :class="{ 'vertical-kanji-container': verticalZhuyin }"
+                          >
+                            <li
+                              v-for="(kanji, kIndex) in word.kanji"
+                              :key="'kanji' + cIndex + wIndex + kIndex"
+                              :class="{ 'char-container': verticalZhuyin }"
+                            >
+                              <div :class="{ pressed: kanji.done }">{{ kanji.display }}</div>
+                              <ul
+                                class="zyuin-container"
+                                :class="{ 'vertical-zyuin-container': verticalZhuyin }"
+                              >
+                                <li
+                                  v-for="(zhuyin, zIndex) in kanji.zhuyin"
+                                  :key="'zhuin' + cIndex + wIndex + kIndex + zIndex"
+                                  :class="{ pressed: zhuyin.done }"
+                                >
+                                  <div v-if="!hideZhuyin || zhuyin.done">
+                                    <span
+                                      v-if="verticalZhuyin && zhuyin.char === Zhuyin.tone1"
+                                    ></span>
+                                    <span v-else-if="zhuyin.char === Zhuyin.tone1">⎻</span>
+                                    <span
+                                      v-else
+                                      :class="{
+                                        'vertical-tones234':
+                                          verticalZhuyin && isTone234(zhuyin.char),
+                                        'vertical-tones5':
+                                          verticalZhuyin && zhuyin.char === Zhuyin.tone5
+                                      }"
+                                    >
+                                      {{ zhuyin.char }}
+                                    </span>
+                                  </div>
+                                </li>
+                              </ul>
+                            </li>
+                          </ul>
+                          <ul
+                            v-else
+                            class="kanji-container"
+                            :class="{ 'vertical-kanji-container': verticalZhuyin }"
+                          >
+                            <li :class="{ 'char-container': verticalZhuyin }">
+                              <div :class="{ pressed: word.done }">{{ word.display }}</div>
+                              <ul
+                                class="zyuin-container"
+                                :class="{ 'vertical-zyuin-container': verticalZhuyin }"
+                              >
+                                <li
+                                  v-for="(zhuyin, zIndex) in word.zhuyin"
+                                  :key="'zhuin' + cIndex + wIndex + zIndex"
+                                  :class="{ pressed: zhuyin.done }"
+                                >
+                                  <div v-if="!hideZhuyin || zhuyin.done">
+                                    <span
+                                      v-if="verticalZhuyin && zhuyin.char === Zhuyin.tone1"
+                                    ></span>
+                                    <span v-else-if="zhuyin.char === Zhuyin.tone1">⎻</span>
+                                    <span
+                                      v-else
+                                      :class="{
+                                        'vertical-tones234':
+                                          verticalZhuyin && isTone234(zhuyin.char),
+                                        'vertical-tones5':
+                                          verticalZhuyin && zhuyin.char === Zhuyin.tone5
+                                      }"
+                                    >
+                                      {{ zhuyin.char }}
+                                    </span>
+                                  </div>
+                                </li>
+                              </ul>
+                            </li>
+                          </ul>
+                        </li>
+                      </ul>
+                      <ul v-else class="chunk-container">
                         <ul
-                          v-if="isWord(word)"
                           class="kanji-container"
                           :class="{ 'vertical-kanji-container': verticalZhuyin }"
                         >
                           <li
-                            v-for="(kanji, kIndex) in word.kanji"
-                            :key="'kanji' + cIndex + wIndex + kIndex"
+                            v-for="(kanji, kIndex) in chunk.kanji"
+                            :key="'kanji' + cIndex + kIndex"
                             :class="{ 'char-container': verticalZhuyin }"
                           >
                             <div :class="{ pressed: kanji.done }">{{ kanji.display }}</div>
@@ -604,10 +687,10 @@ const shareToSocial = (socialMedia: SocialMedia) => {
                             >
                               <li
                                 v-for="(zhuyin, zIndex) in kanji.zhuyin"
-                                :key="'zhuin' + cIndex + wIndex + kIndex + zIndex"
+                                :key="'zhuin' + cIndex + kIndex + zIndex"
                                 :class="{ pressed: zhuyin.done }"
                               >
-                                <div v-if="!hideZhuyin || zhuyin.done">
+                                <div v-if="!hideZhuyin || zhuyin.done" class="">
                                   <span
                                     v-if="verticalZhuyin && zhuyin.char === Zhuyin.tone1"
                                   ></span>
@@ -627,191 +710,122 @@ const shareToSocial = (socialMedia: SocialMedia) => {
                             </ul>
                           </li>
                         </ul>
-                        <ul
-                          v-else
-                          class="kanji-container"
-                          :class="{ 'vertical-kanji-container': verticalZhuyin }"
-                        >
-                          <li :class="{ 'char-container': verticalZhuyin }">
-                            <div :class="{ pressed: word.done }">{{ word.display }}</div>
-                            <ul
-                              class="zyuin-container"
-                              :class="{ 'vertical-zyuin-container': verticalZhuyin }"
-                            >
-                              <li
-                                v-for="(zhuyin, zIndex) in word.zhuyin"
-                                :key="'zhuin' + cIndex + wIndex + zIndex"
-                                :class="{ pressed: zhuyin.done }"
-                              >
-                                <div v-if="!hideZhuyin || zhuyin.done">
-                                  <span
-                                    v-if="verticalZhuyin && zhuyin.char === Zhuyin.tone1"
-                                  ></span>
-                                  <span v-else-if="zhuyin.char === Zhuyin.tone1">⎻</span>
-                                  <span
-                                    v-else
-                                    :class="{
-                                      'vertical-tones234': verticalZhuyin && isTone234(zhuyin.char),
-                                      'vertical-tones5':
-                                        verticalZhuyin && zhuyin.char === Zhuyin.tone5
-                                    }"
-                                  >
-                                    {{ zhuyin.char }}
-                                  </span>
-                                </div>
-                              </li>
-                            </ul>
-                          </li>
-                        </ul>
-                      </li>
-                    </ul>
-                    <ul v-else class="chunk-container">
-                      <ul
-                        class="kanji-container"
-                        :class="{ 'vertical-kanji-container': verticalZhuyin }"
-                      >
-                        <li
-                          v-for="(kanji, kIndex) in chunk.kanji"
-                          :key="'kanji' + cIndex + kIndex"
-                          :class="{ 'char-container': verticalZhuyin }"
-                        >
-                          <div :class="{ pressed: kanji.done }">{{ kanji.display }}</div>
-                          <ul
-                            class="zyuin-container"
-                            :class="{ 'vertical-zyuin-container': verticalZhuyin }"
-                          >
-                            <li
-                              v-for="(zhuyin, zIndex) in kanji.zhuyin"
-                              :key="'zhuin' + cIndex + kIndex + zIndex"
-                              :class="{ pressed: zhuyin.done }"
-                            >
-                              <div v-if="!hideZhuyin || zhuyin.done" class="">
-                                <span v-if="verticalZhuyin && zhuyin.char === Zhuyin.tone1"></span>
-                                <span v-else-if="zhuyin.char === Zhuyin.tone1">⎻</span>
-                                <span
-                                  v-else
-                                  :class="{
-                                    'vertical-tones234': verticalZhuyin && isTone234(zhuyin.char),
-                                    'vertical-tones5':
-                                      verticalZhuyin && zhuyin.char === Zhuyin.tone5
-                                  }"
-                                >
-                                  {{ zhuyin.char }}
-                                </span>
-                              </div>
-                            </li>
-                          </ul>
-                        </li>
                       </ul>
-                    </ul>
-                  </li>
-                </ul>
-                <div v-else>No sentence</div>
+                    </li>
+                  </ul>
+                  <div v-else>No sentence</div>
+                </div>
               </div>
-            </div>
-            <div class="result-container" v-else-if="gameState === GameState.result">
-              <div>Your score: {{ score }}</div>
-              <div v-if="!isRegisterFormOpen" class="result-interface-container">
-                <div class="result-button-container">
-                  <div @click.stop="toggleGame" class="game-button">{{ $t('backtotitle') }}</div>
-                  <div @click.stop="startGame" class="game-button">{{ $t('playAgain') }}</div>
-                  <div @click.stop="isRegisterFormOpen = true" class="game-button">
-                    {{ $t('registerScore') }}
+              <div class="result-container" v-else-if="gameState === GameState.result">
+                <div>Your score: {{ score }}</div>
+                <div v-if="!isRegisterFormOpen" class="result-interface-container">
+                  <div class="result-button-container">
+                    <div @click.stop="toggleGame" class="game-button">{{ $t('backtotitle') }}</div>
+                    <div @click.stop="startGame" class="game-button">{{ $t('playAgain') }}</div>
+                    <div @click.stop="isRegisterFormOpen = true" class="game-button">
+                      {{ $t('registerScore') }}
+                    </div>
+                  </div>
+                  <div class="social-button-container">
+                    <font-awesome-icon
+                      icon="fa-brands fa-x-twitter"
+                      class="social-button"
+                      @click="() => shareToSocial(SocialMedia.twitter)"
+                    />
+                    <font-awesome-icon
+                      icon="fa-brands fa-facebook"
+                      class="social-button"
+                      @click="() => shareToSocial(SocialMedia.facebook)"
+                    />
+                    <font-awesome-icon
+                      icon="fa-brands fa-mastodon"
+                      class="social-button"
+                      @click="() => shareToSocial(SocialMedia.mastodon)"
+                    />
                   </div>
                 </div>
-                <div class="social-button-container">
-                  <font-awesome-icon
-                    icon="fa-brands fa-x-twitter"
-                    class="social-button"
-                    @click="() => shareToSocial(SocialMedia.twitter)"
-                  />
-                  <font-awesome-icon
-                    icon="fa-brands fa-facebook"
-                    class="social-button"
-                    @click="() => shareToSocial(SocialMedia.facebook)"
-                  />
-                  <font-awesome-icon
-                    icon="fa-brands fa-mastodon"
-                    class="social-button"
-                    @click="() => shareToSocial(SocialMedia.mastodon)"
-                  />
-                </div>
-              </div>
-              <div v-else>
-                <div class="register-form" v-if="scoreSendingState === ScoreSendingState.pending">
-                  <label for="username">{{ $t('yourName') }}</label
-                  ><br />
-                  <input name="username" v-model="username" maxlength="25" /><br />
-                  <div class="game-button" @click.stop="registerUserScore">{{ $t('submit') }}</div>
-                </div>
-                <div
-                  class="result-container"
-                  v-else-if="scoreSendingState === ScoreSendingState.sending"
-                >
-                  Sending...
-                </div>
-                <div
-                  class="result-container"
-                  v-else-if="scoreSendingState === ScoreSendingState.sent"
-                >
-                  <div>{{ $t('congrats') }}</div>
-                  <div>{{ $t('rank', { count: rank, ordinal: true }) }}</div>
-                  <div @click.stop="toggleGame" class="game-button">{{ $t('backtotitle') }}</div>
-                </div>
-                <div class="register-form" v-else>
-                  Sorry, Something went wrong.
-                  <div @click.stop="toggleGame" class="game-button">{{ $t('backtotitle') }}</div>
+                <div v-else>
+                  <div class="register-form" v-if="scoreSendingState === ScoreSendingState.pending">
+                    <label for="username">{{ $t('yourName') }}</label
+                    ><br />
+                    <input name="username" v-model="username" maxlength="25" /><br />
+                    <div class="game-button" @click.stop="registerUserScore">
+                      {{ $t('submit') }}
+                    </div>
+                  </div>
                   <div
-                    @click.stop="scoreSendingState = ScoreSendingState.pending"
-                    class="game-button"
+                    class="result-container"
+                    v-else-if="scoreSendingState === ScoreSendingState.sending"
                   >
-                    {{ $t('sendAgain') }}
+                    Sending...
+                  </div>
+                  <div
+                    class="result-container"
+                    v-else-if="scoreSendingState === ScoreSendingState.sent"
+                  >
+                    <div>{{ $t('congrats') }}</div>
+                    <div>{{ $t('rank', { count: rank, ordinal: true }) }}</div>
+                    <div @click.stop="toggleGame" class="game-button">{{ $t('backtotitle') }}</div>
+                  </div>
+                  <div class="register-form" v-else>
+                    Sorry, Something went wrong.
+                    <div @click.stop="toggleGame" class="game-button">{{ $t('backtotitle') }}</div>
+                    <div
+                      @click.stop="scoreSendingState = ScoreSendingState.pending"
+                      class="game-button"
+                    >
+                      {{ $t('sendAgain') }}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-            <div class="main-container" v-else>
-              <div>{{ $t('title') }}</div>
-              <div class="level-container">
-                <div
-                  class="game-button"
-                  :class="[level === Level.easy ? 'level-selected' : '']"
-                  :data-value="Level.easy"
-                  @click.stop="setLevel"
-                >
-                  {{ $t('easy') }}
+              <div class="main-container" v-else>
+                <div>{{ $t('title') }}</div>
+                <div class="level-container">
+                  <div
+                    class="game-button"
+                    :class="[level === Level.easy ? 'level-selected' : '']"
+                    :data-value="Level.easy"
+                    @click.stop="setLevel"
+                  >
+                    {{ $t('easy') }}
+                  </div>
+                  <div
+                    class="game-button"
+                    :class="[level === Level.hard ? 'level-selected' : '']"
+                    :data-value="Level.hard"
+                    @click.stop="setLevel"
+                  >
+                    {{ $t('hard') }}
+                  </div>
                 </div>
                 <div
+                  @click.prevent="toggleGame"
+                  id="start-button"
                   class="game-button"
-                  :class="[level === Level.hard ? 'level-selected' : '']"
-                  :data-value="Level.hard"
-                  @click.stop="setLevel"
+                  :class="{
+                    'startbotton-focused': isFocused
+                  }"
                 >
-                  {{ $t('hard') }}
+                  {{ $t('start') }}
                 </div>
               </div>
-              <div
-                @click.prevent="toggleGame"
-                id="start-button"
-                class="game-button"
-                :class="{
-                  'startbotton-focused': isFocused
-                }"
-              >
-                {{ $t('start') }}
-              </div>
             </div>
+            <VisualKeyboard
+              :isShift="isShift"
+              @detectKeydown="(key) => detectKeydown(null, key)"
+              @detectKeyup="(key) => detectKeyup(null, key)"
+              @toggleShift="toggleShift"
+            />
           </div>
-          <VisualKeyboard
-            :isShift="isShift"
-            @detectKeydown="(key) => detectKeydown(null, key)"
-            @detectKeyup="(key) => detectKeyup(null, key)"
-            @toggleShift="toggleShift"
-          />
         </div>
       </div>
-    </div>
-    <RankingContainer :rankers="rankers" />
+      <RankingContainer :rankers="rankers" />
+    </section>
+    <section class="description-section">
+      <h2>{{ $t('zhuyinDescriptionTitle') }}</h2>
+      <article>{{ $t('zhuyinDescriptionText') }}</article>
+    </section>
   </main>
 </template>
 
@@ -854,14 +868,19 @@ const shareToSocial = (socialMedia: SocialMedia) => {
 }
 
 main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.main-section {
   padding: 0;
   margin: 0;
   display: flex;
   justify-content: center;
-}
-
-h1 {
-  margin: 10px 0;
+  h1 {
+    margin: 10px 0;
+  }
 }
 
 button {
@@ -1123,8 +1142,15 @@ ul {
   left: 0.4em;
 }
 
+.description-section {
+  margin-top: 50px;
+  display: flex;
+  flex-direction: column;
+  width: 50%;
+}
+
 @media screen and (min-width: 1040px) {
-  main {
+  .main-section {
     display: grid;
     grid-template-rows: 50px 1fr;
     grid-template-columns: 1fr 1040px 1fr 1fr 1fr;
@@ -1153,7 +1179,7 @@ ul {
 }
 
 @media screen and (min-width: 960px) and (max-width: 1039px) {
-  main {
+  .main-section {
     flex-direction: column;
     align-items: center;
   }
@@ -1174,7 +1200,7 @@ ul {
 }
 
 @media screen and (max-width: 959px) {
-  main {
+  .main-section {
     flex-direction: column;
     align-items: center;
   }

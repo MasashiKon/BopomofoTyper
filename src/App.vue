@@ -30,6 +30,10 @@ onMounted(() => {
 </template>
 
 <style scoped>
+* {
+  font-size: 14px;
+  font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+}
 /* header {
   line-height: 1.5;
   max-height: 100vh;

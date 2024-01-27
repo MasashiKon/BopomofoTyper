@@ -78,7 +78,8 @@ export enum MeanOfChunk {
   mainClause = 'mainClause',
   subordinateClause = 'subordinateClause',
   timeClause = 'timeClause',
-  subjectVerb = 'subjectVerb'
+  subjectVerb = 'subjectVerb',
+  subject = 'subject'
 }
 
 export enum AvailableLang {

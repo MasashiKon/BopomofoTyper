@@ -1,5 +1,71 @@
 <script setup lang="ts">
-defineProps({ isShift: Boolean })
+import { watch, reactive } from 'vue'
+import type { TypingStatistics } from '@/type/types'
+import { Zhuyin, GameState } from '@/type/enums'
+import { convertZhuyin } from '@/utils/convertZhuyin'
+
+type KeyRatio = {
+  key: string
+  ratio: number
+}
+
+const prop = defineProps<{
+  isShift: boolean
+  gameState: GameState
+  typingStatistics: TypingStatistics
+}>()
+
+const worstKeysMistaken: {
+  first: KeyRatio | undefined
+  second: KeyRatio | undefined
+  third: KeyRatio | undefined
+} = reactive({ first: undefined, second: undefined, third: undefined })
+
+watch(
+  () => prop.gameState,
+  (newValue) => {
+    if (newValue === GameState.result) {
+      const typingStatistics = prop.typingStatistics
+      for (const [keyAlpha, value] of Object.entries(typingStatistics)) {
+        if (!value.total || !value.success) continue
+        const key = convertZhuyin(keyAlpha)
+        const ratio = value.success / value.total
+        if (ratio > 0.7) continue
+        if (worstKeysMistaken.first && ratio < worstKeysMistaken.first.ratio) {
+          worstKeysMistaken.third = worstKeysMistaken.second
+          worstKeysMistaken.second = worstKeysMistaken.first
+          worstKeysMistaken.first = { key, ratio }
+        } else if (worstKeysMistaken.second && ratio < worstKeysMistaken.second.ratio) {
+          worstKeysMistaken.third = worstKeysMistaken.second
+          worstKeysMistaken.second = { key, ratio }
+        } else if (worstKeysMistaken.third && ratio < worstKeysMistaken.third.ratio) {
+          worstKeysMistaken.third = { key, ratio }
+        } else if (!worstKeysMistaken.first) {
+          worstKeysMistaken.first = { key, ratio }
+        } else if (!worstKeysMistaken.second) {
+          worstKeysMistaken.second = { key, ratio }
+        } else if (!worstKeysMistaken.third) {
+          worstKeysMistaken.third = { key, ratio }
+        }
+      }
+    } else {
+      worstKeysMistaken.first = undefined
+      worstKeysMistaken.second = undefined
+      worstKeysMistaken.third = undefined
+    }
+  }
+)
+
+const detectWorstKeys = (zhuyin: Zhuyin) => {
+  if (prop.gameState !== GameState.result) return
+  if (worstKeysMistaken.first?.key === zhuyin) {
+    return 'worst-first'
+  } else if (worstKeysMistaken.second?.key === zhuyin) {
+    return 'worst-second'
+  } else if (worstKeysMistaken.third?.key === zhuyin) {
+    return 'worst-third'
+  }
+}
 </script>
 
 <template>
@@ -8,6 +74,7 @@ defineProps({ isShift: Boolean })
       <div class="keyboard-row">
         <div
           class="keyboard-key"
+          :class="detectWorstKeys(Zhuyin.b)"
           @mousedown.stop="!isShift ? $emit('detectKeydown', '1') : $emit('detectKeydown', '!')"
           @mouseup="!isShift ? $emit('detectKeyup', '1') : $emit('detectKeyup', '!')"
         >
@@ -17,6 +84,7 @@ defineProps({ isShift: Boolean })
         </div>
         <div
           class="keyboard-key"
+          :class="detectWorstKeys(Zhuyin.d)"
           @mousedown.stop="$emit('detectKeydown', '2')"
           @mouseup="$emit('detectKeyup', '2')"
         >
@@ -25,6 +93,7 @@ defineProps({ isShift: Boolean })
         </div>
         <div
           class="keyboard-key"
+          :class="detectWorstKeys(Zhuyin.tone3)"
           @mousedown.stop="$emit('detectKeydown', '3')"
           @mouseup="$emit('detectKeyup', '3')"
         >
@@ -33,6 +102,7 @@ defineProps({ isShift: Boolean })
         </div>
         <div
           class="keyboard-key"
+          :class="detectWorstKeys(Zhuyin.tone4)"
           @mousedown.stop="$emit('detectKeydown', '4')"
           @mouseup="$emit('detectKeyup', '4')"
         >
@@ -41,6 +111,7 @@ defineProps({ isShift: Boolean })
         </div>
         <div
           class="keyboard-key"
+          :class="detectWorstKeys(Zhuyin.zh)"
           @mousedown.stop="$emit('detectKeydown', '5')"
           @mouseup="$emit('detectKeyup', '5')"
         >
@@ -49,6 +120,7 @@ defineProps({ isShift: Boolean })
         </div>
         <div
           class="keyboard-key"
+          :class="detectWorstKeys(Zhuyin.tone2)"
           @mousedown.stop="$emit('detectKeydown', '6')"
           @mouseup="$emit('detectKeyup', '6')"
         >
@@ -57,6 +129,7 @@ defineProps({ isShift: Boolean })
         </div>
         <div
           class="keyboard-key"
+          :class="detectWorstKeys(Zhuyin.tone5)"
           @mousedown.stop="$emit('detectKeydown', '7')"
           @mouseup="$emit('detectKeyup', '7')"
         >
@@ -65,6 +138,7 @@ defineProps({ isShift: Boolean })
         </div>
         <div
           class="keyboard-key"
+          :class="detectWorstKeys(Zhuyin.a)"
           @mousedown.stop="$emit('detectKeydown', '8')"
           @mouseup="$emit('detectKeyup', '8')"
         >
@@ -73,6 +147,7 @@ defineProps({ isShift: Boolean })
         </div>
         <div
           class="keyboard-key"
+          :class="detectWorstKeys(Zhuyin.ai)"
           @mousedown.stop="$emit('detectKeydown', '9')"
           @mouseup="$emit('detectKeyup', '9')"
         >
@@ -81,6 +156,7 @@ defineProps({ isShift: Boolean })
         </div>
         <div
           class="keyboard-key"
+          :class="detectWorstKeys(Zhuyin.an)"
           @mousedown.stop="$emit('detectKeydown', '0')"
           @mouseup="$emit('detectKeyup', '0')"
         >
@@ -89,6 +165,7 @@ defineProps({ isShift: Boolean })
         </div>
         <div
           class="keyboard-key"
+          :class="detectWorstKeys(Zhuyin.er)"
           @mousedown.stop="$emit('detectKeydown', '-')"
           @mouseup="$emit('detectKeyup', '-')"
         >
@@ -99,6 +176,7 @@ defineProps({ isShift: Boolean })
       <div class="keyboard-row">
         <div
           class="keyboard-key"
+          :class="detectWorstKeys(Zhuyin.p)"
           @mousedown.stop="$emit('detectKeydown', 'q')"
           @mouseup="$emit('detectKeyup', 'q')"
         >
@@ -107,6 +185,7 @@ defineProps({ isShift: Boolean })
         </div>
         <div
           class="keyboard-key"
+          :class="detectWorstKeys(Zhuyin.t)"
           @mousedown.stop="$emit('detectKeydown', 'w')"
           @mouseup="$emit('detectKeyup', 'w')"
         >
@@ -115,6 +194,7 @@ defineProps({ isShift: Boolean })
         </div>
         <div
           class="keyboard-key"
+          :class="detectWorstKeys(Zhuyin.g)"
           @mousedown.stop="$emit('detectKeydown', 'e')"
           @mouseup="$emit('detectKeyup', 'e')"
         >
@@ -123,6 +203,7 @@ defineProps({ isShift: Boolean })
         </div>
         <div
           class="keyboard-key"
+          :class="detectWorstKeys(Zhuyin.j)"
           @mousedown.stop="$emit('detectKeydown', 'r')"
           @mouseup="$emit('detectKeyup', 'r')"
         >
@@ -131,6 +212,7 @@ defineProps({ isShift: Boolean })
         </div>
         <div
           class="keyboard-key"
+          :class="detectWorstKeys(Zhuyin.ch)"
           @mousedown.stop="$emit('detectKeydown', 't')"
           @mouseup="$emit('detectKeyup', 't')"
         >
@@ -139,6 +221,7 @@ defineProps({ isShift: Boolean })
         </div>
         <div
           class="keyboard-key"
+          :class="detectWorstKeys(Zhuyin.z)"
           @mousedown.stop="$emit('detectKeydown', 'y')"
           @mouseup="$emit('detectKeyup', 'y')"
         >
@@ -147,14 +230,16 @@ defineProps({ isShift: Boolean })
         </div>
         <div
           class="keyboard-key"
+          :class="detectWorstKeys(Zhuyin.i)"
           @mousedown.stop="$emit('detectKeydown', 'u')"
           @mouseup="$emit('detectKeyup', 'u')"
         >
           <div>U</div>
-          <div v-if="!isShift">ㄧ</div>
+          <div class="zhuyin-i" v-if="!isShift">ㄧ</div>
         </div>
         <div
           class="keyboard-key"
+          :class="detectWorstKeys(Zhuyin.o)"
           @mousedown.stop="$emit('detectKeydown', 'i')"
           @mouseup="$emit('detectKeyup', 'i')"
         >
@@ -163,6 +248,7 @@ defineProps({ isShift: Boolean })
         </div>
         <div
           class="keyboard-key"
+          :class="detectWorstKeys(Zhuyin.ei)"
           @mousedown.stop="$emit('detectKeydown', 'o')"
           @mouseup="$emit('detectKeyup', 'o')"
         >
@@ -171,6 +257,7 @@ defineProps({ isShift: Boolean })
         </div>
         <div
           class="keyboard-key"
+          :class="detectWorstKeys(Zhuyin.en)"
           @mousedown.stop="$emit('detectKeydown', 'p')"
           @mouseup="$emit('detectKeyup', 'p')"
         >
@@ -181,6 +268,7 @@ defineProps({ isShift: Boolean })
       <div class="keyboard-row">
         <div
           class="keyboard-key"
+          :class="detectWorstKeys(Zhuyin.m)"
           @mousedown.stop="$emit('detectKeydown', 'a')"
           @mouseup="$emit('detectKeyup', 'a')"
         >
@@ -189,6 +277,7 @@ defineProps({ isShift: Boolean })
         </div>
         <div
           class="keyboard-key"
+          :class="detectWorstKeys(Zhuyin.n)"
           @mousedown.stop="$emit('detectKeydown', 's')"
           @mouseup="$emit('detectKeyup', 's')"
         >
@@ -197,6 +286,7 @@ defineProps({ isShift: Boolean })
         </div>
         <div
           class="keyboard-key"
+          :class="detectWorstKeys(Zhuyin.k)"
           @mousedown.stop="$emit('detectKeydown', 'd')"
           @mouseup="$emit('detectKeyup', 'd')"
         >
@@ -205,6 +295,7 @@ defineProps({ isShift: Boolean })
         </div>
         <div
           class="keyboard-key"
+          :class="detectWorstKeys(Zhuyin.q)"
           @mousedown.stop="$emit('detectKeydown', 'f')"
           @mouseup="$emit('detectKeyup', 'f')"
         >
@@ -213,6 +304,7 @@ defineProps({ isShift: Boolean })
         </div>
         <div
           class="keyboard-key"
+          :class="detectWorstKeys(Zhuyin.sh)"
           @mousedown.stop="$emit('detectKeydown', 'g')"
           @mouseup="$emit('detectKeyup', 'g')"
         >
@@ -221,6 +313,7 @@ defineProps({ isShift: Boolean })
         </div>
         <div
           class="keyboard-key"
+          :class="detectWorstKeys(Zhuyin.c)"
           @mousedown.stop="$emit('detectKeydown', 'h')"
           @mouseup="$emit('detectKeyup', 'h')"
         >
@@ -229,6 +322,7 @@ defineProps({ isShift: Boolean })
         </div>
         <div
           class="keyboard-key"
+          :class="detectWorstKeys(Zhuyin.u)"
           @mousedown.stop="$emit('detectKeydown', 'j')"
           @mouseup="$emit('detectKeyup', 'j')"
         >
@@ -237,6 +331,7 @@ defineProps({ isShift: Boolean })
         </div>
         <div
           class="keyboard-key"
+          :class="detectWorstKeys(Zhuyin.e)"
           @mousedown.stop="$emit('detectKeydown', 'k')"
           @mouseup="$emit('detectKeyup', 'k')"
         >
@@ -245,6 +340,7 @@ defineProps({ isShift: Boolean })
         </div>
         <div
           class="keyboard-key"
+          :class="detectWorstKeys(Zhuyin.ao)"
           @mousedown.stop="$emit('detectKeydown', 'l')"
           @mouseup="$emit('detectKeyup', 'l')"
         >
@@ -253,6 +349,7 @@ defineProps({ isShift: Boolean })
         </div>
         <div
           class="keyboard-key"
+          :class="detectWorstKeys(Zhuyin.ang)"
           @mousedown.stop="$emit('detectKeydown', ';')"
           @mouseup="$emit('detectKeyup', ';')"
         >
@@ -263,6 +360,7 @@ defineProps({ isShift: Boolean })
       <div class="keyboard-row">
         <div
           class="keyboard-key"
+          :class="detectWorstKeys(Zhuyin.tone1)"
           @mousedown.stop="$emit('detectKeydown', ' ')"
           @mouseup="$emit('detectKeyup', ' ')"
         >
@@ -271,6 +369,7 @@ defineProps({ isShift: Boolean })
         </div>
         <div
           class="keyboard-key"
+          :class="detectWorstKeys(Zhuyin.f)"
           @mousedown.stop="$emit('detectKeydown', 'z')"
           @mouseup="$emit('detectKeyup', 'z')"
         >
@@ -279,6 +378,7 @@ defineProps({ isShift: Boolean })
         </div>
         <div
           class="keyboard-key"
+          :class="detectWorstKeys(Zhuyin.l)"
           @mousedown.stop="$emit('detectKeydown', 'x')"
           @mouseup="$emit('detectKeyup', 'x')"
         >
@@ -287,6 +387,7 @@ defineProps({ isShift: Boolean })
         </div>
         <div
           class="keyboard-key"
+          :class="detectWorstKeys(Zhuyin.h)"
           @mousedown.stop="$emit('detectKeydown', 'c')"
           @mouseup="$emit('detectKeyup', 'c')"
         >
@@ -295,6 +396,7 @@ defineProps({ isShift: Boolean })
         </div>
         <div
           class="keyboard-key"
+          :class="detectWorstKeys(Zhuyin.x)"
           @mousedown.stop="$emit('detectKeydown', 'v')"
           @mouseup="$emit('detectKeyup', 'v')"
         >
@@ -303,6 +405,7 @@ defineProps({ isShift: Boolean })
         </div>
         <div
           class="keyboard-key"
+          :class="detectWorstKeys(Zhuyin.r)"
           @mousedown.stop="$emit('detectKeydown', 'b')"
           @mouseup="$emit('detectKeyup', 'b')"
         >
@@ -311,6 +414,7 @@ defineProps({ isShift: Boolean })
         </div>
         <div
           class="keyboard-key"
+          :class="detectWorstKeys(Zhuyin.s)"
           @mousedown.stop="$emit('detectKeydown', 'n')"
           @mouseup="$emit('detectKeyup', 'n')"
         >
@@ -319,6 +423,7 @@ defineProps({ isShift: Boolean })
         </div>
         <div
           class="keyboard-key"
+          :class="detectWorstKeys(Zhuyin.u2)"
           @mousedown.stop="$emit('detectKeydown', 'm')"
           @mouseup="$emit('detectKeyup', 'm')"
         >
@@ -327,6 +432,7 @@ defineProps({ isShift: Boolean })
         </div>
         <div
           class="keyboard-key"
+          :class="detectWorstKeys(Zhuyin.e2)"
           @mousedown.stop="!isShift ? $emit('detectKeydown', ',') : $emit('detectKeydown', '<')"
           @mouseup="!isShift ? $emit('detectKeyup', ',') : $emit('detectKeyup', '<')"
         >
@@ -336,6 +442,7 @@ defineProps({ isShift: Boolean })
         </div>
         <div
           class="keyboard-key"
+          :class="detectWorstKeys(Zhuyin.ou)"
           @mousedown.stop="!isShift ? $emit('detectKeydown', '.') : $emit('detectKeydown', '>')"
           @mouseup="!isShift ? $emit('detectKeyup', '.') : $emit('detectKeyup', '>')"
         >
@@ -345,6 +452,7 @@ defineProps({ isShift: Boolean })
         </div>
         <div
           class="keyboard-key"
+          :class="detectWorstKeys(Zhuyin.eng)"
           @mousedown.stop="!isShift ? $emit('detectKeydown', '/') : $emit('detectKeydown', '?')"
           @mouseup="!isShift ? $emit('detectKeyup', '/') : $emit('detectKeyup', '?')"
         >
@@ -371,44 +479,53 @@ defineProps({ isShift: Boolean })
   height: 200px;
 }
 
-.keyboard {
-  --key-size: 40px;
-  --row-gap: 15px;
-  --row-base-margin: -20px;
-  .keyboard-row {
-    display: flex;
-    padding: 2px 0;
-    .keyboard-key {
-      width: var(--key-size);
-      height: var(--key-size);
-      background-color: #f0f7f4;
-      border: 2px solid #3c493f;
-      border-radius: 5px;
-      text-align: center;
-      margin: 0 2px;
-      -webkit-user-select: none;
-      user-select: none;
-      cursor: pointer;
-    }
-    .key-pressed {
-      background-color: #c9eddc;
-    }
-  }
+.keyboard-row {
+  display: flex;
+  padding: 2px 0;
+}
 
-  .keyboard-row:nth-child(1) {
-    margin-left: calc(var(--row-base-margin) + var(--row-gap));
-  }
+.keyboard-key {
+  width: var(--key-size);
+  height: var(--key-size);
+  background-color: #f0f7f4;
+  border: 2px solid #3c493f;
+  border-radius: 5px;
+  text-align: center;
+  margin: 0 2px;
+  -webkit-user-select: none;
+  user-select: none;
+  cursor: pointer;
+}
 
-  .keyboard-row:nth-child(2) {
-    margin-left: calc(var(--row-base-margin) + (var(--row-gap) * 2));
-  }
+.key-pressed {
+  background-color: #c9eddc;
+}
 
-  .keyboard-row:nth-child(3) {
-    margin-left: calc(var(--row-base-margin) + (var(--row-gap) * 3));
-  }
+.keyboard-row:nth-child(1) {
+  margin-left: calc(var(--row-base-margin) + var(--row-gap));
+}
 
-  .keyboard-row:nth-child(4) {
-    margin-left: calc(var(--row-base-margin) + (var(--row-gap)));
-  }
+.keyboard-row:nth-child(2) {
+  margin-left: calc(var(--row-base-margin) + (var(--row-gap) * 2));
+}
+
+.keyboard-row:nth-child(3) {
+  margin-left: calc(var(--row-base-margin) + (var(--row-gap) * 3));
+}
+
+.keyboard-row:nth-child(4) {
+  margin-left: calc(var(--row-base-margin) + (var(--row-gap)));
+}
+
+.worst-first {
+  background-color: #ff3c00;
+}
+
+.worst-second {
+  background-color: #ffa200;
+}
+
+.worst-third {
+  background-color: #ffe100;
 }
 </style>

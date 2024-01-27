@@ -1,7 +1,16 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { createClient } from '@supabase/supabase-js'
-import type { Kanji, ZhuyinChar, SentenceContainer, Ranker } from '@/type/types'
+import { useTranslation } from 'i18next-vue'
+import i18next from 'i18next'
+import type {
+  Kanji,
+  ZhuyinChar,
+  SentenceContainer,
+  Ranker,
+  TypingStatistics,
+  CharStatistics
+} from '@/type/types'
 import {
   AvailableLang,
   LocalStrageName,
@@ -15,10 +24,9 @@ import {
 import getCorrespondingKeys from '@/utils/getCorrespondingKeys'
 import { isChuck, isWord } from '@/utils/verifyTypes'
 import fetchSentences from '@/utils/fetchSentences'
-import i18next from 'i18next'
 import VisualKeyboard from '@/components/VisualKeyboard.vue'
 import RankingContainer from '@/components/RankingContainer.vue'
-import { useTranslation } from 'i18next-vue'
+import { reverseZhuyin } from '@/utils/convertZhuyin'
 
 const gameTime = 120
 const baseVolume = 1
@@ -54,6 +62,50 @@ const hideZhuyin = ref(
 
 let keys: Element[]
 
+const typingStatistics: TypingStatistics = reactive({
+  b: { total: 0, success: 0 },
+  p: { total: 0, success: 0 },
+  m: { total: 0, success: 0 },
+  f: { total: 0, success: 0 },
+  d: { total: 0, success: 0 },
+  t: { total: 0, success: 0 },
+  n: { total: 0, success: 0 },
+  l: { total: 0, success: 0 },
+  g: { total: 0, success: 0 },
+  k: { total: 0, success: 0 },
+  h: { total: 0, success: 0 },
+  j: { total: 0, success: 0 },
+  q: { total: 0, success: 0 },
+  x: { total: 0, success: 0 },
+  zh: { total: 0, success: 0 },
+  ch: { total: 0, success: 0 },
+  sh: { total: 0, success: 0 },
+  r: { total: 0, success: 0 },
+  z: { total: 0, success: 0 },
+  c: { total: 0, success: 0 },
+  s: { total: 0, success: 0 },
+  a: { total: 0, success: 0 },
+  o: { total: 0, success: 0 },
+  e: { total: 0, success: 0 },
+  e2: { total: 0, success: 0 },
+  ai: { total: 0, success: 0 },
+  ei: { total: 0, success: 0 },
+  ao: { total: 0, success: 0 },
+  ou: { total: 0, success: 0 },
+  an: { total: 0, success: 0 },
+  en: { total: 0, success: 0 },
+  ang: { total: 0, success: 0 },
+  eng: { total: 0, success: 0 },
+  er: { total: 0, success: 0 },
+  i: { total: 0, success: 0 },
+  u: { total: 0, success: 0 },
+  u2: { total: 0, success: 0 },
+  tone1: { total: 0, success: 0 },
+  tone2: { total: 0, success: 0 },
+  tone3: { total: 0, success: 0 },
+  tone4: { total: 0, success: 0 },
+  tone5: { total: 0, success: 0 }
+})
 const rankers: Ranker[] = reactive([])
 const addedTime: number[] = reactive([])
 
@@ -125,6 +177,7 @@ const kanjiArr = computed((): Kanji[] => {
 let interval: number | null
 
 const startGame = async () => {
+  gameState.value = GameState.loading
   while (sentences.low.length > 0) {
     sentences.low.shift()
   }
@@ -132,14 +185,10 @@ const startGame = async () => {
     sentences.high.shift()
   }
   await fetchSentences(sentences, level.value as Level)
-  gameState.value = GameState.playing
-  timeLimit.value = 100
-  timeCount.value = gameTime
-  frameCount.value = 0
-  score.value = 0
   if (interval) {
     clearInterval(interval)
   }
+  initiateStatus()
   interval = window.setInterval(() => {
     if (frameCount.value === 0) {
       timeCount.value--
@@ -164,7 +213,7 @@ const startGame = async () => {
 }
 
 const initiateStatus = () => {
-  gameState.value = GameState.stop
+  gameState.value = GameState.playing
   timeLimit.value = 100
   timeCount.value = gameTime
   frameCount.value = 0
@@ -173,6 +222,10 @@ const initiateStatus = () => {
   streak.value = 0
   isRegisterFormOpen.value = false
   scoreSendingState.value = ScoreSendingState.pending
+  for (const [key] of Object.entries(typingStatistics)) {
+    typingStatistics[key].total = 0
+    typingStatistics[key].success = 0
+  }
   if (!interval) return
   clearInterval(interval)
   interval = null
@@ -185,19 +238,16 @@ const moveToResult = () => {
   interval = null
 }
 
-const toggleGame = (e: Event) => {
+const toggleGame = (e: Event, newGameState: GameState) => {
   e.preventDefault()
   e.stopPropagation()
-  if (gameState.value === GameState.stop) {
+  if (newGameState === GameState.stop) {
+    gameState.value = GameState.stop
+  } else if (newGameState === GameState.playing) {
+    gameState.value = GameState.playing
     startGame()
-  } else {
-    initiateStatus()
-    while (sentences.low.length > 0) {
-      sentences.low.shift()
-    }
-    while (sentences.high.length > 0) {
-      sentences.high.shift()
-    }
+  } else if (newGameState === GameState.result) {
+    gameState.value = GameState.result
   }
 }
 
@@ -234,7 +284,7 @@ const findTargetKey = (arr: Element[], passedKey: string) => {
       (passedKey === '!' && key.lastChild?.textContent === '！') ||
       (passedKey === '<' && key.lastChild?.textContent === '，、') ||
       (passedKey === '>' && key.lastChild?.textContent === '。') ||
-      (passedKey === ' ' && key.lastChild?.textContent === 'Space') ||
+      (passedKey === ' ' && key.firstChild?.textContent === 'Space') ||
       (passedKey === 'Shift' && key.firstChild?.textContent === 'Shift')
     )
   })
@@ -265,7 +315,9 @@ const detectKeydown = (e: KeyboardEvent | null, clickedKey?: string) => {
     if (key === 'Shift') {
       isShift.value = true
     }
+
     const targetKey = findTargetKey(keys, key)
+    let typedZhuyin: CharStatistics | undefined
     if (targetKey) {
       targetKey.classList.add('key-pressed')
     }
@@ -276,6 +328,14 @@ const detectKeydown = (e: KeyboardEvent | null, clickedKey?: string) => {
       answer2 = kanjiArr.value[0].zhuyin2.find((zhuyin) => !zhuyin.done)
     }
     if (!answer) return
+
+    const zhuyinAlphabet = reverseZhuyin(answer.char)
+    if (zhuyinAlphabet) {
+      typedZhuyin = typingStatistics[zhuyinAlphabet]
+      if (typedZhuyin) {
+        typedZhuyin.total++
+      }
+    }
 
     const playSound = (sound: HTMLAudioElement | null) => {
       if (!sound || !isVolumeOn.value) return
@@ -321,6 +381,9 @@ const detectKeydown = (e: KeyboardEvent | null, clickedKey?: string) => {
       if (answer2) answer2.done = true
 
       evaluateStatus()
+      if (typedZhuyin) {
+        typedZhuyin.success++
+      }
     } else if (answer2 && key === getCorrespondingKeys(answer2.char, lang.value)) {
       answer2.done = true
       while (kanjiArr.value[0].zhuyin.length > 0) {
@@ -336,6 +399,14 @@ const detectKeydown = (e: KeyboardEvent | null, clickedKey?: string) => {
       }
 
       evaluateStatus()
+      const zhuyinAlphabet = reverseZhuyin(answer2.char)
+      if (zhuyinAlphabet) {
+        typedZhuyin = typingStatistics[zhuyinAlphabet]
+        if (typedZhuyin) {
+          typedZhuyin.total++
+          typedZhuyin.success++
+        }
+      }
     } else {
       playSound(hitKeySound)
     }
@@ -614,14 +685,15 @@ const shareToSocial = (socialMedia: SocialMedia) => {
                                     <span
                                       v-if="verticalZhuyin && zhuyin.char === Zhuyin.tone1"
                                     ></span>
-                                    <span v-else-if="zhuyin.char === Zhuyin.tone1">⎻</span>
+                                    <span v-else-if="zhuyin.char === Zhuyin.tone1">‾</span>
                                     <span
                                       v-else
                                       :class="{
                                         'vertical-tones234':
                                           verticalZhuyin && isTone234(zhuyin.char),
                                         'vertical-tones5':
-                                          verticalZhuyin && zhuyin.char === Zhuyin.tone5
+                                          verticalZhuyin && zhuyin.char === Zhuyin.tone5,
+                                        'zhuyin-i': zhuyin.char === Zhuyin.i
                                       }"
                                     >
                                       {{ zhuyin.char }}
@@ -651,14 +723,15 @@ const shareToSocial = (socialMedia: SocialMedia) => {
                                     <span
                                       v-if="verticalZhuyin && zhuyin.char === Zhuyin.tone1"
                                     ></span>
-                                    <span v-else-if="zhuyin.char === Zhuyin.tone1">⎻</span>
+                                    <span v-else-if="zhuyin.char === Zhuyin.tone1">‾</span>
                                     <span
                                       v-else
                                       :class="{
                                         'vertical-tones234':
                                           verticalZhuyin && isTone234(zhuyin.char),
                                         'vertical-tones5':
-                                          verticalZhuyin && zhuyin.char === Zhuyin.tone5
+                                          verticalZhuyin && zhuyin.char === Zhuyin.tone5,
+                                        'zhuyin-i': zhuyin.char === Zhuyin.i
                                       }"
                                     >
                                       {{ zhuyin.char }}
@@ -694,13 +767,14 @@ const shareToSocial = (socialMedia: SocialMedia) => {
                                   <span
                                     v-if="verticalZhuyin && zhuyin.char === Zhuyin.tone1"
                                   ></span>
-                                  <span v-else-if="zhuyin.char === Zhuyin.tone1">⎻</span>
+                                  <span v-else-if="zhuyin.char === Zhuyin.tone1">‾</span>
                                   <span
                                     v-else
                                     :class="{
                                       'vertical-tones234': verticalZhuyin && isTone234(zhuyin.char),
                                       'vertical-tones5':
-                                        verticalZhuyin && zhuyin.char === Zhuyin.tone5
+                                        verticalZhuyin && zhuyin.char === Zhuyin.tone5,
+                                      'zhuyin-i': zhuyin.char === Zhuyin.i
                                     }"
                                   >
                                     {{ zhuyin.char }}
@@ -713,15 +787,22 @@ const shareToSocial = (socialMedia: SocialMedia) => {
                       </ul>
                     </li>
                   </ul>
-                  <div v-else>No sentence</div>
+                  <div v-else-if="gameState === GameState.playing && !currentSentence">
+                    No sentence
+                  </div>
                 </div>
               </div>
+              <div v-else-if="gameState === GameState.loading">Loading...</div>
               <div class="result-container" v-else-if="gameState === GameState.result">
                 <div>Your score: {{ score }}</div>
                 <div v-if="!isRegisterFormOpen" class="result-interface-container">
                   <div class="result-button-container">
-                    <div @click.stop="toggleGame" class="game-button">{{ $t('backtotitle') }}</div>
-                    <div @click.stop="startGame" class="game-button">{{ $t('playAgain') }}</div>
+                    <div @click.stop="(e) => toggleGame(e, GameState.stop)" class="game-button">
+                      {{ $t('backtotitle') }}
+                    </div>
+                    <div @click.stop="(e) => toggleGame(e, GameState.playing)" class="game-button">
+                      {{ $t('playAgain') }}
+                    </div>
                     <div @click.stop="isRegisterFormOpen = true" class="game-button">
                       {{ $t('registerScore') }}
                     </div>
@@ -765,11 +846,15 @@ const shareToSocial = (socialMedia: SocialMedia) => {
                   >
                     <div>{{ $t('congrats') }}</div>
                     <div>{{ $t('rank', { count: rank, ordinal: true }) }}</div>
-                    <div @click.stop="toggleGame" class="game-button">{{ $t('backtotitle') }}</div>
+                    <div @click.stop="(e) => toggleGame(e, GameState.stop)" class="game-button">
+                      {{ $t('backtotitle') }}
+                    </div>
                   </div>
                   <div class="register-form" v-else>
                     Sorry, Something went wrong.
-                    <div @click.stop="toggleGame" class="game-button">{{ $t('backtotitle') }}</div>
+                    <div @click.stop="(e) => toggleGame(e, GameState.stop)" class="game-button">
+                      {{ $t('backtotitle') }}
+                    </div>
                     <div
                       @click.stop="scoreSendingState = ScoreSendingState.pending"
                       class="game-button"
@@ -800,7 +885,7 @@ const shareToSocial = (socialMedia: SocialMedia) => {
                   </div>
                 </div>
                 <div
-                  @click.prevent="toggleGame"
+                  @click.prevent="(e) => toggleGame(e, GameState.playing)"
                   id="start-button"
                   class="game-button"
                   :class="{
@@ -813,6 +898,8 @@ const shareToSocial = (socialMedia: SocialMedia) => {
             </div>
             <VisualKeyboard
               :isShift="isShift"
+              :game-state="gameState"
+              :typing-statistics="typingStatistics"
               @detectKeydown="(key) => detectKeydown(null, key)"
               @detectKeyup="(key) => detectKeyup(null, key)"
               @toggleShift="toggleShift"
@@ -865,6 +952,9 @@ const shareToSocial = (socialMedia: SocialMedia) => {
   --button-color-selected: #7e8d85;
   --border-color: #3c493f;
   --active-color: #c9eddc;
+  --key-size: 40px;
+  --row-gap: 15px;
+  --row-base-margin: -20px;
 }
 
 main {
@@ -1133,14 +1223,14 @@ ul {
 
 .vertical-tones234 {
   position: relative;
-  left: 0.5em;
+  left: 0.7em;
   top: -1.5em;
 }
 
 .vertical-tones5 {
   position: absolute;
   top: -0.2em;
-  left: 0.4em;
+  left: 0.25em;
 }
 
 .description-section {
@@ -1148,6 +1238,11 @@ ul {
   display: flex;
   flex-direction: column;
   width: 50%;
+}
+
+.zhuyin-i {
+  display: inline-block;
+  transform: rotate(90deg);
 }
 
 @media screen and (min-width: 1040px) {

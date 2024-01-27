@@ -1,6 +1,6 @@
 import axios, { type AxiosResponse } from 'axios'
 import i18next from 'i18next'
-import convertZhuyin from './convertZhuyin'
+import { convertZhuyin } from './convertZhuyin'
 import generateQuery from './generateQuery'
 import type { Sentence, Chunk, Word, Kanji, ZhuyinChar, SentenceContainer } from '@/type/types'
 import { Level } from '@/type/enums'

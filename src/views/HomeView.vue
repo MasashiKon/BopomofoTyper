@@ -142,9 +142,22 @@ const timeBarColor = computed(() => {
 
 const currentSentence = computed(() => {
   if (!sentences.low.length && !sentences.high.length) return null
+  // // @ts-ignore
+  // if (responsiveVoice.isPlaying()) {
+  //   // @ts-ignore
+  //   responsiveVoice.cancel()
+  // }
   if (currentNotch.value === Notch.low) {
+    if (isVolumeOn.value) {
+      // @ts-ignore
+      responsiveVoice.speak(sentences.low[0].sentense)
+    }
     return sentences.low[0]
   } else if (currentNotch.value === Notch.high) {
+    if (isVolumeOn.value) {
+      // @ts-ignore
+      responsiveVoice.speak(sentences.high[0].sentense)
+    }
     return sentences.high[0]
   } else {
     return null
@@ -274,6 +287,9 @@ onMounted(async () => {
   hitKeySound = new Audio('/sounds/hit-key.mp3')
   popSound = new Audio('/sounds/pop.mp3')
   setVolume()
+
+  // @ts-ignore
+  responsiveVoice.setDefaultVoice('Chinese Taiwan Female')
 })
 
 const findTargetKey = (arr: Element[], passedKey: string) => {

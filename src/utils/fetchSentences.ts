@@ -24,6 +24,7 @@ const generateSentences = (
     const sentence = sentenceNode.node
     const sentenceContainer: Sentence = {
       id: Number(sentence.id),
+      sentense: sentence.display,
       chunks: [],
       done: false
     }

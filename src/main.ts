@@ -12,10 +12,8 @@ import { faVolumeHigh, faVolumeLow, faVolumeXmark } from '@fortawesome/free-soli
 import { faXTwitter, faFacebook, faMastodon } from '@fortawesome/free-brands-svg-icons' 
 
 const scriptResponsivevoice = document.createElement('script')
-console.log(`https://code.responsivevoice.org/responsivevoice.js?key=${import.meta.env.VITE_RV_APIKEY}`);
-
 scriptResponsivevoice.src = `https://code.responsivevoice.org/responsivevoice.js?key=${import.meta.env.VITE_RV_APIKEY}`
-// document.body.appendChild(scriptResponsivevoice)
+document.body.appendChild(scriptResponsivevoice)
 
 library.add(faVolumeHigh, faVolumeLow, faVolumeXmark, faXTwitter, faFacebook, faMastodon)
 

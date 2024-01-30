@@ -11,9 +11,9 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faVolumeHigh, faVolumeLow, faVolumeXmark } from '@fortawesome/free-solid-svg-icons'
 import { faXTwitter, faFacebook, faMastodon } from '@fortawesome/free-brands-svg-icons' 
 
-const scriptResponsivevoice = document.createElement('script')
-scriptResponsivevoice.src = `https://code.responsivevoice.org/responsivevoice.js?key=${import.meta.env.VITE_RV_APIKEY}`
-document.body.appendChild(scriptResponsivevoice)
+// const scriptResponsivevoice = document.createElement('script')
+// scriptResponsivevoice.src = `https://code.responsivevoice.org/responsivevoice.js?key=${import.meta.env.VITE_RV_APIKEY}`
+// document.body.appendChild(scriptResponsivevoice)
 
 library.add(faVolumeHigh, faVolumeLow, faVolumeXmark, faXTwitter, faFacebook, faMastodon)
 

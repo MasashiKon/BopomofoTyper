@@ -18,6 +18,7 @@ i18next
           // here we will place our translations...
           currentLang: 'English',
           translation: 'Translation',
+          practice: 'Practice',
           easy: 'Easy',
           hard: 'Hard',
           backtotitle: 'Back to title',
@@ -44,13 +45,15 @@ i18next
           title: 'Bopomofo Typer(beta)',
           tag: 'BopomofoTyper',
           zhuyinDescriptionTitle: 'What is Bopomofo?',
-          zhuyinDescriptionText: 'Bopomofo, also known as Zhuyin Fuhao, is a unique script used predominantly in Taiwan. It serves as a phonetic script, aiding in the learning of traditional Chinese characters, alongside pinyin. Bopomofo plays a crucial role in language education and daily writing in Taiwan.'
+          zhuyinDescriptionText:
+            'Bopomofo, also known as Zhuyin Fuhao, is a unique script used predominantly in Taiwan. It serves as a phonetic script, aiding in the learning of traditional Chinese characters, alongside pinyin. Bopomofo plays a crucial role in language education and daily writing in Taiwan.'
         }
       },
       ja: {
         translation: {
           currentLang: '日本語（変換モードを直接入力にして下さい）',
           translation: '翻訳',
+          practice: 'れんしゅう',
           easy: 'かんたん',
           hard: 'むずかしい',
           backtotitle: 'タイトルに戻る',
@@ -73,7 +76,8 @@ i18next
           title: 'ボポモフォとくだー（ベータ版）',
           tag: 'ボポモフォとくだー',
           zhuyinDescriptionTitle: 'ボポモフォとは？',
-          zhuyinDescriptionText: 'ボポモフォ（Bopomofo）は、台湾で主に使用されている文字の一つで、注音符号とも呼ばれています。これは、漢字や注音符号など、伝統的な漢字の学習に役立つために開発された、特有の文字体系です。ボポモフォは、主に台湾で広く普及しており、言語教育や日常の文章の書き方において非常に重要な役割を果たしています。'
+          zhuyinDescriptionText:
+            'ボポモフォ（Bopomofo）は、台湾で主に使用されている文字の一つで、注音符号とも呼ばれています。これは、漢字や注音符号など、伝統的な漢字の学習に役立つために開発された、特有の文字体系です。ボポモフォは、主に台湾で広く普及しており、言語教育や日常の文章の書き方において非常に重要な役割を果たしています。'
         }
       }
     }

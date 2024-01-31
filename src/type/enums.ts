@@ -49,6 +49,46 @@ export enum Zhuyin {
   error = 'error'
 }
 
+export enum ZhuyinPronunciation {
+  b = 'b',
+  p = 'p',
+  m = 'm',
+  f = 'f',
+  d = 'd',
+  t = 't',
+  n = 'n',
+  l = 'l',
+  g = 'g',
+  k = 'k',
+  h = 'h',
+  j = 'j',
+  q = 'q',
+  x = 'x',
+  zh = 'zh',
+  ch = 'ch',
+  sh = 'sh',
+  r = 'r',
+  z = 'z',
+  c = 'c',
+  s = 's',
+  a = 'a',
+  o = 'o',
+  e = 'e',
+  e2 = 'ê',
+  ai = 'ai',
+  ei = 'ei',
+  ao = 'ao',
+  ou = 'ou',
+  an = 'an',
+  en = 'en',
+  ang = 'ang',
+  eng = 'eng',
+  er = 'er',
+  i = 'i',
+  u = 'u',
+  u2 = 'ü'
+}
+
 export enum PartOfSpeech {
   noun = 'noun',
   verb = 'verb',
@@ -97,6 +137,7 @@ export enum LocalStrageName {
 }
 
 export enum Level {
+  practice = 'practice',
   easy = 'easy',
   hard = 'hard'
 }

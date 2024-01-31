@@ -1,4 +1,4 @@
-import type { Zhuyin, PartOfSpeech, MeanOfChunk } from './enums'
+import type { Zhuyin, ZhuyinPronunciation, PartOfSpeech, MeanOfChunk } from './enums'
 
 export type Character = {
   char: string
@@ -7,6 +7,11 @@ export type Character = {
 export type ZhuyinChar = Omit<Character, 'char'> & {
   char: Zhuyin
   done: boolean
+}
+
+export type PracticeModeZhuyin = {
+  char: Zhuyin
+  pronunciation: ZhuyinPronunciation
 }
 
 export type Kanji = {
@@ -30,12 +35,13 @@ export type Chunk = {
 
 export type Sentence = {
   sentense: string
-  id: Number
+  id?: Number
   chunks: (Chunk | Word)[]
   done: boolean
 }
 
 export type SentenceContainer = {
+  practice: any[]
   high: Sentence[]
   low: Sentence[]
 }

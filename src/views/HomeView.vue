@@ -24,12 +24,15 @@ import {
 import getCorrespondingKeys from '@/utils/getCorrespondingKeys'
 import { isChuck, isWord } from '@/utils/verifyTypes'
 import fetchSentences from '@/utils/fetchSentences'
+import { practiceModeZhuyinList } from '@/utils/zhuyinList'
 import VisualKeyboard from '@/components/VisualKeyboard.vue'
 import RankingContainer from '@/components/RankingContainer.vue'
 import { reverseZhuyin } from '@/utils/convertZhuyin'
+import MenuScene from '@/components/MenuScene.vue'
 
 const gameTime = 120
 const baseVolume = 1
+const streakThreshold = 5
 const supabase = createClient(import.meta.env.VITE_DB_URL_GEN, import.meta.env.VITE_DB_APIKEY)
 const i18n = useTranslation()
 let hitKeySound: HTMLAudioElement | null
@@ -110,6 +113,7 @@ const rankers: Ranker[] = reactive([])
 const addedTime: number[] = reactive([])
 
 const sentences: SentenceContainer = reactive({
+  practice: [[], []],
   high: [],
   low: []
 })
@@ -119,7 +123,7 @@ const timeLimitStr = computed(() => {
 })
 
 const currentNotch = computed(() => {
-  if (streak.value > 5 && sentences.high.length) {
+  if (streak.value > streakThreshold && sentences.high.length) {
     return Notch.high
   } else if (sentences.low.length) {
     return Notch.low
@@ -141,6 +145,7 @@ const timeBarColor = computed(() => {
 })
 
 const currentSentence = computed(() => {
+  if (level.value === Level.practice && currentNotch.value === Notch.low) return null
   if (!sentences.low.length && !sentences.high.length) return null
   // // @ts-ignore
   // if (responsiveVoice.isPlaying()) {
@@ -164,8 +169,26 @@ const currentSentence = computed(() => {
   }
 })
 
+const currentPracticeZhuyin = computed(() => {
+  if (level.value !== Level.practice) return null
+  if (currentNotch.value === Notch.low) {
+    if (sentences.practice[0].length < 0) return null
+    if (isVolumeOn.value && sentences.practice[0][0]) {
+      // @ts-ignore
+      responsiveVoice.speak(sentences.practice[0][0].char)
+    }
+    return sentences.practice[0][0]
+  } else if (currentNotch.value === Notch.high) {
+    if (sentences.practice[1].length < 0) return null
+    return null
+  } else {
+    return null
+  }
+})
+
 const kanjiArr = computed((): Kanji[] => {
   const kanjiArr: Kanji[] = []
+  if (level.value === Level.practice && currentNotch.value === Notch.low) return kanjiArr
   if (!currentSentence.value) return kanjiArr
   for (let chunk of currentSentence.value.chunks) {
     if (isWord(chunk)) {
@@ -190,39 +213,61 @@ const kanjiArr = computed((): Kanji[] => {
 let interval: number | null
 
 const startGame = async () => {
-  gameState.value = GameState.loading
-  while (sentences.low.length > 0) {
-    sentences.low.shift()
-  }
-  while (sentences.high.length > 0) {
-    sentences.high.shift()
-  }
-  await fetchSentences(sentences, level.value as Level)
-  if (interval) {
-    clearInterval(interval)
-  }
-  initiateStatus()
-  interval = window.setInterval(() => {
-    if (frameCount.value === 0) {
-      timeCount.value--
+  if (level.value === Level.practice) {
+    // @ts-ignore
+    responsiveVoice.setDefaultVoice('Chinese Female')
+    while (sentences.practice[0].length > 0) {
+      sentences.practice.shift()
     }
-    frameCount.value = (frameCount.value + 1) % 250
-    timeLimit.value = timeLimit.value - 0.01
-    if (timeCount.value <= 0) {
-      moveToResult()
-    } else if (timeLimit.value < 0) {
-      if (currentNotch.value === Notch.low) {
-        sentences.low.shift()
-      } else if (currentNotch.value === Notch.high) {
-        sentences.high.shift()
+    while (sentences.practice[1].length > 0) {
+      sentences.practice.shift()
+    }
+    while (sentences.high.length > 0) {
+      sentences.high.shift()
+    }
+    const zhuyinList = [...practiceModeZhuyinList]
+    while (zhuyinList.length > 0) {
+      const index = Math.floor(Math.random() * zhuyinList.length)
+      const pickedZhuyin = zhuyinList.splice(index, 1)
+      sentences.practice[0].push(...pickedZhuyin)
+    }
+  } else {
+    // @ts-ignore
+    responsiveVoice.setDefaultVoice('Chinese Taiwan Male')
+    gameState.value = GameState.loading
+    while (sentences.low.length > 0) {
+      sentences.low.shift()
+    }
+    while (sentences.high.length > 0) {
+      sentences.high.shift()
+    }
+    await fetchSentences(sentences, level.value as Level)
+    if (interval) {
+      clearInterval(interval)
+    }
+    initiateStatus()
+    interval = window.setInterval(() => {
+      if (frameCount.value === 0) {
+        timeCount.value--
       }
-      streak.value = 0
-      timeLimit.value = 100
-      if (!sentences.low.length && !sentences.high.length) {
+      frameCount.value = (frameCount.value + 1) % 250
+      timeLimit.value = timeLimit.value - 0.01
+      if (timeCount.value <= 0) {
         moveToResult()
+      } else if (timeLimit.value < 0) {
+        if (currentNotch.value === Notch.low) {
+          sentences.low.shift()
+        } else if (currentNotch.value === Notch.high) {
+          sentences.high.shift()
+        }
+        streak.value = 0
+        timeLimit.value = 100
+        if (!sentences.low.length && !sentences.high.length) {
+          moveToResult()
+        }
       }
-    }
-  })
+    })
+  }
 }
 
 const initiateStatus = () => {
@@ -289,7 +334,7 @@ onMounted(async () => {
   setVolume()
 
   // @ts-ignore
-  responsiveVoice.setDefaultVoice('Chinese Taiwan Female')
+  responsiveVoice.setDefaultVoice('Chinese Female')
 })
 
 const findTargetKey = (arr: Element[], passedKey: string) => {
@@ -325,7 +370,6 @@ watch(volume, () => {
 
 const detectKeydown = (e: KeyboardEvent | null, clickedKey?: string) => {
   if (gameState.value === GameState.playing) {
-    if (!kanjiArr.value || !kanjiArr.value.length) return
     const key = e?.key || clickedKey
     if (!key) return
     if (key === 'Shift') {
@@ -333,24 +377,8 @@ const detectKeydown = (e: KeyboardEvent | null, clickedKey?: string) => {
     }
 
     const targetKey = findTargetKey(keys, key)
-    let typedZhuyin: CharStatistics | undefined
     if (targetKey) {
       targetKey.classList.add('key-pressed')
-    }
-
-    const answer: ZhuyinChar | undefined = kanjiArr.value[0].zhuyin.find((zhuyin) => !zhuyin.done)
-    let answer2: ZhuyinChar | undefined
-    if (kanjiArr.value[0].zhuyin2 && kanjiArr.value[0].zhuyin.length > 0) {
-      answer2 = kanjiArr.value[0].zhuyin2.find((zhuyin) => !zhuyin.done)
-    }
-    if (!answer) return
-
-    const zhuyinAlphabet = reverseZhuyin(answer.char)
-    if (zhuyinAlphabet) {
-      typedZhuyin = typingStatistics[zhuyinAlphabet]
-      if (typedZhuyin) {
-        typedZhuyin.total++
-      }
     }
 
     const playSound = (sound: HTMLAudioElement | null) => {
@@ -359,80 +387,118 @@ const detectKeydown = (e: KeyboardEvent | null, clickedKey?: string) => {
       sound.play()
     }
 
-    const evaluateStatus = () => {
-      score.value += 1
-      if (kanjiArr.value[0].zhuyin.every((zhuyin) => zhuyin.done)) {
-        kanjiArr.value[0].done = true
-        kanjiArr.value.shift()
-        timeLimit.value += 5
-        score.value += 5
-        playSound(popSound)
-      } else {
-        playSound(hitKeySound)
-      }
-      if (!kanjiArr.value.length) {
-        if (currentNotch.value === Notch.low) {
-          score.value += 10
-          sentences.low.shift()
-        } else if (currentNotch.value === Notch.high) {
-          score.value += 100
-          sentences.high.shift()
-        }
-        streak.value++
-        timeLimit.value = 100
-        score.value += streak.value * 5
-        if (streak.value % 3 === 0) {
-          const streakBonus = 10
-          timeCount.value += streakBonus
-          displayAddedTime(streakBonus)
-        }
-        if (!sentences.low.length && !sentences.high.length) {
-          moveToResult()
+    if (level.value === Level.practice && currentNotch.value === Notch.low) {
+      if (currentPracticeZhuyin.value) {
+        const answer: Zhuyin = currentPracticeZhuyin.value.char
+        if (key === getCorrespondingKeys(answer, lang.value)) {
+          sentences.practice[0].shift()
+          if (sentences.practice[0].length === 0) {
+            gameState.value = GameState.stop
+          }
         }
       }
-    }
+      // else {
+      //   streak.value = streakThreshold + 1
+      // }
+    } else {
+      if (!kanjiArr.value || !kanjiArr.value.length) return
 
-    if (key === getCorrespondingKeys(answer.char, lang.value)) {
-      answer.done = true
-      if (answer2) answer2.done = true
+      let typedZhuyin: CharStatistics | undefined
 
-      evaluateStatus()
-      if (typedZhuyin) {
-        typedZhuyin.success++
+      const answer: ZhuyinChar | undefined = kanjiArr.value[0].zhuyin.find((zhuyin) => !zhuyin.done)
+      let answer2: ZhuyinChar | undefined
+      if (kanjiArr.value[0].zhuyin2 && kanjiArr.value[0].zhuyin.length > 0) {
+        answer2 = kanjiArr.value[0].zhuyin2.find((zhuyin) => !zhuyin.done)
       }
-    } else if (answer2 && key === getCorrespondingKeys(answer2.char, lang.value)) {
-      answer2.done = true
-      while (kanjiArr.value[0].zhuyin.length > 0) {
-        kanjiArr.value[0].zhuyin.shift()
-      }
-      if (kanjiArr.value[0].zhuyin2) {
-        for (const kanjiContainer of kanjiArr.value[0].zhuyin2) {
-          kanjiArr.value[0].zhuyin.push(kanjiContainer)
-        }
-        while (kanjiArr.value[0].zhuyin2.length > 0) {
-          kanjiArr.value[0].zhuyin2.shift()
-        }
-      }
+      if (!answer) return
 
-      evaluateStatus()
-      const zhuyinAlphabet = reverseZhuyin(answer2.char)
+      const zhuyinAlphabet = reverseZhuyin(answer.char)
       if (zhuyinAlphabet) {
         typedZhuyin = typingStatistics[zhuyinAlphabet]
         if (typedZhuyin) {
           typedZhuyin.total++
-          typedZhuyin.success++
         }
       }
-    } else {
-      playSound(hitKeySound)
+
+      const evaluateStatus = () => {
+        score.value += 1
+        if (kanjiArr.value[0].zhuyin.every((zhuyin) => zhuyin.done)) {
+          kanjiArr.value[0].done = true
+          kanjiArr.value.shift()
+          timeLimit.value += 5
+          score.value += 5
+          playSound(popSound)
+        } else {
+          playSound(hitKeySound)
+        }
+        if (!kanjiArr.value.length) {
+          if (currentNotch.value === Notch.low) {
+            score.value += 10
+            sentences.low.shift()
+          } else if (currentNotch.value === Notch.high) {
+            score.value += 100
+            sentences.high.shift()
+          }
+          streak.value++
+          timeLimit.value = 100
+          score.value += streak.value * 5
+          if (streak.value % 3 === 0) {
+            const streakBonus = 10
+            timeCount.value += streakBonus
+            displayAddedTime(streakBonus)
+          }
+          if (!sentences.low.length && !sentences.high.length) {
+            moveToResult()
+          }
+        }
+      }
+
+      if (key === getCorrespondingKeys(answer.char, lang.value)) {
+        answer.done = true
+        if (answer2) answer2.done = true
+
+        evaluateStatus()
+        if (typedZhuyin) {
+          typedZhuyin.success++
+        }
+      } else if (answer2 && key === getCorrespondingKeys(answer2.char, lang.value)) {
+        answer2.done = true
+        while (kanjiArr.value[0].zhuyin.length > 0) {
+          kanjiArr.value[0].zhuyin.shift()
+        }
+        if (kanjiArr.value[0].zhuyin2) {
+          for (const kanjiContainer of kanjiArr.value[0].zhuyin2) {
+            kanjiArr.value[0].zhuyin.push(kanjiContainer)
+          }
+          while (kanjiArr.value[0].zhuyin2.length > 0) {
+            kanjiArr.value[0].zhuyin2.shift()
+          }
+        }
+
+        evaluateStatus()
+        const zhuyinAlphabet = reverseZhuyin(answer2.char)
+        if (zhuyinAlphabet) {
+          typedZhuyin = typingStatistics[zhuyinAlphabet]
+          if (typedZhuyin) {
+            typedZhuyin.total++
+            typedZhuyin.success++
+          }
+        }
+      } else {
+        playSound(hitKeySound)
+      }
     }
   } else if (gameState.value === GameState.stop) {
     if (!e) return
     if (e.key === 'ArrowUp') {
       switch (level.value) {
-        case Level.easy:
+        case Level.practice:
           level.value = Level.hard
           localStorage.setItem(LocalStrageName.level, Level.hard)
+          break
+        case Level.easy:
+          level.value = Level.practice
+          localStorage.setItem(LocalStrageName.level, Level.practice)
           break
         case Level.hard:
           level.value = Level.easy
@@ -441,13 +507,17 @@ const detectKeydown = (e: KeyboardEvent | null, clickedKey?: string) => {
       }
     } else if (e.key === 'ArrowDown') {
       switch (level.value) {
+        case Level.practice:
+          level.value = Level.easy
+          localStorage.setItem(LocalStrageName.level, Level.easy)
+          break
         case Level.easy:
           level.value = Level.hard
           localStorage.setItem(LocalStrageName.level, Level.hard)
           break
         case Level.hard:
-          level.value = Level.easy
-          localStorage.setItem(LocalStrageName.level, Level.easy)
+          level.value = Level.practice
+          localStorage.setItem(LocalStrageName.level, Level.practice)
           break
       }
     } else if (e.key === 'Enter') {
@@ -479,7 +549,10 @@ const changeLanguage = (lang: string) => {
 const setLevel = (e: MouseEvent) => {
   if (!e.target) return
   const button = e.target as HTMLDivElement
-  if (button.getAttribute('data-value') === Level.easy) {
+  if (button.getAttribute('data-value') === Level.practice) {
+    level.value = Level.practice
+    localStorage.setItem(LocalStrageName.level, Level.practice)
+  } else if (button.getAttribute('data-value') === Level.easy) {
     level.value = Level.easy
     localStorage.setItem(LocalStrageName.level, Level.easy)
   } else if (button.getAttribute('data-value') === Level.hard) {
@@ -649,42 +722,148 @@ const shareToSocial = (socialMedia: SocialMedia) => {
                 'mainwindow-focused': isFocused
               }"
             >
-              <div class="toggles-container">
-                <div
-                  class="game-button"
-                  :class="{ 'button-on': verticalZhuyin }"
-                  @click="toggleVerticalZhuyin"
-                >
-                  {{ $t('verticalZhuyin') }}
+              <div class="compete-mode" v-if="level === Level.practice">
+                <div class="main-container" v-if="gameState === GameState.playing">
+                  <div class="practice-container" v-if="currentPracticeZhuyin">
+                    <div class="practice-zhuyin">
+                      {{ currentPracticeZhuyin.char }}
+                    </div>
+                    <div class="practice-pronunciation">
+                      {{ currentPracticeZhuyin.pronunciation }}
+                    </div>
+                  </div>
                 </div>
-                <div
-                  class="game-button"
-                  :class="{ 'button-on': hideZhuyin }"
-                  @click="toggleHideZhuyin"
-                >
-                  {{ $t('hideZhuyin') }}
+                <div class="main-container" v-else-if="gameState === GameState.stop">
+                  <MenuScene
+                    :level="
+                      // line break for eslint
+                      level as Level
+                    "
+                    :is-focused="isFocused"
+                    @setLevel="(e) => setLevel(e)"
+                    @toggleGame="(e, gameState) => toggleGame(e, gameState)"
+                  />
                 </div>
               </div>
-              <div class="main-container" v-if="gameState === GameState.playing">
-                <div class="time-bar"></div>
-                <div class="translation-and-sentence">
-                  <div class="translation">
-                    {{
-                      currentSentence ? $t(`sentence_${currentNotch}_${currentSentence.id}`) : ''
-                    }}
+              <div class="compete-mode" v-else>
+                <div class="toggles-container">
+                  <div
+                    class="game-button"
+                    :class="{ 'button-on': verticalZhuyin }"
+                    @click="toggleVerticalZhuyin"
+                  >
+                    {{ $t('verticalZhuyin') }}
                   </div>
-                  <ul v-if="currentSentence" class="sentence-container">
-                    <li v-for="(chunk, cIndex) in currentSentence.chunks" :key="'chunk' + cIndex">
-                      <ul v-if="isChuck(chunk)" class="chunk-container">
-                        <li v-for="(word, wIndex) in chunk.word" :key="'word' + cIndex + wIndex">
+                  <div
+                    class="game-button"
+                    :class="{ 'button-on': hideZhuyin }"
+                    @click="toggleHideZhuyin"
+                  >
+                    {{ $t('hideZhuyin') }}
+                  </div>
+                </div>
+                <div class="main-container" v-if="gameState === GameState.playing">
+                  <div class="time-bar"></div>
+                  <div class="translation-and-sentence">
+                    <div class="translation">
+                      {{
+                        currentSentence ? $t(`sentence_${currentNotch}_${currentSentence.id}`) : ''
+                      }}
+                    </div>
+                    <ul v-if="currentSentence" class="sentence-container">
+                      <li v-for="(chunk, cIndex) in currentSentence.chunks" :key="'chunk' + cIndex">
+                        <ul v-if="isChuck(chunk)" class="chunk-container">
+                          <li v-for="(word, wIndex) in chunk.word" :key="'word' + cIndex + wIndex">
+                            <ul
+                              v-if="isWord(word)"
+                              class="kanji-container"
+                              :class="{ 'vertical-kanji-container': verticalZhuyin }"
+                            >
+                              <li
+                                v-for="(kanji, kIndex) in word.kanji"
+                                :key="'kanji' + cIndex + wIndex + kIndex"
+                                :class="{ 'char-container': verticalZhuyin }"
+                              >
+                                <div :class="{ pressed: kanji.done }">{{ kanji.display }}</div>
+                                <ul
+                                  class="zyuin-container"
+                                  :class="{ 'vertical-zyuin-container': verticalZhuyin }"
+                                >
+                                  <li
+                                    v-for="(zhuyin, zIndex) in kanji.zhuyin"
+                                    :key="'zhuin' + cIndex + wIndex + kIndex + zIndex"
+                                    :class="{ pressed: zhuyin.done }"
+                                  >
+                                    <div v-if="!hideZhuyin || zhuyin.done">
+                                      <span
+                                        v-if="verticalZhuyin && zhuyin.char === Zhuyin.tone1"
+                                      ></span>
+                                      <span v-else-if="zhuyin.char === Zhuyin.tone1">‾</span>
+                                      <span
+                                        v-else
+                                        :class="{
+                                          'vertical-tones234':
+                                            verticalZhuyin && isTone234(zhuyin.char),
+                                          'vertical-tones5':
+                                            verticalZhuyin && zhuyin.char === Zhuyin.tone5,
+                                          'zhuyin-i': zhuyin.char === Zhuyin.i
+                                        }"
+                                      >
+                                        {{ zhuyin.char }}
+                                      </span>
+                                    </div>
+                                  </li>
+                                </ul>
+                              </li>
+                            </ul>
+                            <ul
+                              v-else
+                              class="kanji-container"
+                              :class="{ 'vertical-kanji-container': verticalZhuyin }"
+                            >
+                              <li :class="{ 'char-container': verticalZhuyin }">
+                                <div :class="{ pressed: word.done }">{{ word.display }}</div>
+                                <ul
+                                  class="zyuin-container"
+                                  :class="{ 'vertical-zyuin-container': verticalZhuyin }"
+                                >
+                                  <li
+                                    v-for="(zhuyin, zIndex) in word.zhuyin"
+                                    :key="'zhuin' + cIndex + wIndex + zIndex"
+                                    :class="{ pressed: zhuyin.done }"
+                                  >
+                                    <div v-if="!hideZhuyin || zhuyin.done">
+                                      <span
+                                        v-if="verticalZhuyin && zhuyin.char === Zhuyin.tone1"
+                                      ></span>
+                                      <span v-else-if="zhuyin.char === Zhuyin.tone1">‾</span>
+                                      <span
+                                        v-else
+                                        :class="{
+                                          'vertical-tones234':
+                                            verticalZhuyin && isTone234(zhuyin.char),
+                                          'vertical-tones5':
+                                            verticalZhuyin && zhuyin.char === Zhuyin.tone5,
+                                          'zhuyin-i': zhuyin.char === Zhuyin.i
+                                        }"
+                                      >
+                                        {{ zhuyin.char }}
+                                      </span>
+                                    </div>
+                                  </li>
+                                </ul>
+                              </li>
+                            </ul>
+                          </li>
+                        </ul>
+                        <ul v-else class="chunk-container">
                           <ul
-                            v-if="isWord(word)"
                             class="kanji-container"
                             :class="{ 'vertical-kanji-container': verticalZhuyin }"
                           >
                             <li
-                              v-for="(kanji, kIndex) in word.kanji"
-                              :key="'kanji' + cIndex + wIndex + kIndex"
+                              v-for="(kanji, kIndex) in chunk.kanji"
+                              :key="'kanji' + cIndex + kIndex"
                               :class="{ 'char-container': verticalZhuyin }"
                             >
                               <div :class="{ pressed: kanji.done }">{{ kanji.display }}</div>
@@ -694,10 +873,10 @@ const shareToSocial = (socialMedia: SocialMedia) => {
                               >
                                 <li
                                   v-for="(zhuyin, zIndex) in kanji.zhuyin"
-                                  :key="'zhuin' + cIndex + wIndex + kIndex + zIndex"
+                                  :key="'zhuin' + cIndex + kIndex + zIndex"
                                   :class="{ pressed: zhuyin.done }"
                                 >
-                                  <div v-if="!hideZhuyin || zhuyin.done">
+                                  <div v-if="!hideZhuyin || zhuyin.done" class="">
                                     <span
                                       v-if="verticalZhuyin && zhuyin.char === Zhuyin.tone1"
                                     ></span>
@@ -719,196 +898,102 @@ const shareToSocial = (socialMedia: SocialMedia) => {
                               </ul>
                             </li>
                           </ul>
-                          <ul
-                            v-else
-                            class="kanji-container"
-                            :class="{ 'vertical-kanji-container': verticalZhuyin }"
-                          >
-                            <li :class="{ 'char-container': verticalZhuyin }">
-                              <div :class="{ pressed: word.done }">{{ word.display }}</div>
-                              <ul
-                                class="zyuin-container"
-                                :class="{ 'vertical-zyuin-container': verticalZhuyin }"
-                              >
-                                <li
-                                  v-for="(zhuyin, zIndex) in word.zhuyin"
-                                  :key="'zhuin' + cIndex + wIndex + zIndex"
-                                  :class="{ pressed: zhuyin.done }"
-                                >
-                                  <div v-if="!hideZhuyin || zhuyin.done">
-                                    <span
-                                      v-if="verticalZhuyin && zhuyin.char === Zhuyin.tone1"
-                                    ></span>
-                                    <span v-else-if="zhuyin.char === Zhuyin.tone1">‾</span>
-                                    <span
-                                      v-else
-                                      :class="{
-                                        'vertical-tones234':
-                                          verticalZhuyin && isTone234(zhuyin.char),
-                                        'vertical-tones5':
-                                          verticalZhuyin && zhuyin.char === Zhuyin.tone5,
-                                        'zhuyin-i': zhuyin.char === Zhuyin.i
-                                      }"
-                                    >
-                                      {{ zhuyin.char }}
-                                    </span>
-                                  </div>
-                                </li>
-                              </ul>
-                            </li>
-                          </ul>
-                        </li>
-                      </ul>
-                      <ul v-else class="chunk-container">
-                        <ul
-                          class="kanji-container"
-                          :class="{ 'vertical-kanji-container': verticalZhuyin }"
-                        >
-                          <li
-                            v-for="(kanji, kIndex) in chunk.kanji"
-                            :key="'kanji' + cIndex + kIndex"
-                            :class="{ 'char-container': verticalZhuyin }"
-                          >
-                            <div :class="{ pressed: kanji.done }">{{ kanji.display }}</div>
-                            <ul
-                              class="zyuin-container"
-                              :class="{ 'vertical-zyuin-container': verticalZhuyin }"
-                            >
-                              <li
-                                v-for="(zhuyin, zIndex) in kanji.zhuyin"
-                                :key="'zhuin' + cIndex + kIndex + zIndex"
-                                :class="{ pressed: zhuyin.done }"
-                              >
-                                <div v-if="!hideZhuyin || zhuyin.done" class="">
-                                  <span
-                                    v-if="verticalZhuyin && zhuyin.char === Zhuyin.tone1"
-                                  ></span>
-                                  <span v-else-if="zhuyin.char === Zhuyin.tone1">‾</span>
-                                  <span
-                                    v-else
-                                    :class="{
-                                      'vertical-tones234': verticalZhuyin && isTone234(zhuyin.char),
-                                      'vertical-tones5':
-                                        verticalZhuyin && zhuyin.char === Zhuyin.tone5,
-                                      'zhuyin-i': zhuyin.char === Zhuyin.i
-                                    }"
-                                  >
-                                    {{ zhuyin.char }}
-                                  </span>
-                                </div>
-                              </li>
-                            </ul>
-                          </li>
                         </ul>
-                      </ul>
-                    </li>
-                  </ul>
-                  <div v-else-if="gameState === GameState.playing && !currentSentence">
-                    No sentence
+                      </li>
+                    </ul>
+                    <div v-else-if="gameState === GameState.playing && !currentSentence">
+                      No sentence
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div v-else-if="gameState === GameState.loading">Loading...</div>
-              <div class="result-container" v-else-if="gameState === GameState.result">
-                <div>Your score: {{ score }}</div>
-                <div v-if="!isRegisterFormOpen" class="result-interface-container">
-                  <div class="result-button-container">
-                    <div @click.stop="(e) => toggleGame(e, GameState.stop)" class="game-button">
-                      {{ $t('backtotitle') }}
+                <div v-else-if="gameState === GameState.loading">Loading...</div>
+                <div class="result-container" v-else-if="gameState === GameState.result">
+                  <div>Your score: {{ score }}</div>
+                  <div v-if="!isRegisterFormOpen" class="result-interface-container">
+                    <div class="result-button-container">
+                      <div @click.stop="(e) => toggleGame(e, GameState.stop)" class="game-button">
+                        {{ $t('backtotitle') }}
+                      </div>
+                      <div
+                        @click.stop="(e) => toggleGame(e, GameState.playing)"
+                        class="game-button"
+                      >
+                        {{ $t('playAgain') }}
+                      </div>
+                      <div @click.stop="isRegisterFormOpen = true" class="game-button">
+                        {{ $t('registerScore') }}
+                      </div>
                     </div>
-                    <div @click.stop="(e) => toggleGame(e, GameState.playing)" class="game-button">
-                      {{ $t('playAgain') }}
-                    </div>
-                    <div @click.stop="isRegisterFormOpen = true" class="game-button">
-                      {{ $t('registerScore') }}
-                    </div>
-                  </div>
-                  <div class="social-button-container">
-                    <font-awesome-icon
-                      icon="fa-brands fa-x-twitter"
-                      class="social-button"
-                      @click="() => shareToSocial(SocialMedia.twitter)"
-                    />
-                    <font-awesome-icon
-                      icon="fa-brands fa-facebook"
-                      class="social-button"
-                      @click="() => shareToSocial(SocialMedia.facebook)"
-                    />
-                    <font-awesome-icon
-                      icon="fa-brands fa-mastodon"
-                      class="social-button"
-                      @click="() => shareToSocial(SocialMedia.mastodon)"
-                    />
-                  </div>
-                </div>
-                <div v-else>
-                  <div class="register-form" v-if="scoreSendingState === ScoreSendingState.pending">
-                    <label for="username">{{ $t('yourName') }}</label
-                    ><br />
-                    <input name="username" v-model="username" maxlength="25" /><br />
-                    <div class="game-button" @click.stop="registerUserScore">
-                      {{ $t('submit') }}
+                    <div class="social-button-container">
+                      <font-awesome-icon
+                        icon="fa-brands fa-x-twitter"
+                        class="social-button"
+                        @click="() => shareToSocial(SocialMedia.twitter)"
+                      />
+                      <font-awesome-icon
+                        icon="fa-brands fa-facebook"
+                        class="social-button"
+                        @click="() => shareToSocial(SocialMedia.facebook)"
+                      />
+                      <font-awesome-icon
+                        icon="fa-brands fa-mastodon"
+                        class="social-button"
+                        @click="() => shareToSocial(SocialMedia.mastodon)"
+                      />
                     </div>
                   </div>
-                  <div
-                    class="result-container"
-                    v-else-if="scoreSendingState === ScoreSendingState.sending"
-                  >
-                    Sending...
-                  </div>
-                  <div
-                    class="result-container"
-                    v-else-if="scoreSendingState === ScoreSendingState.sent"
-                  >
-                    <div>{{ $t('congrats') }}</div>
-                    <div>{{ $t('rank', { count: rank, ordinal: true }) }}</div>
-                    <div @click.stop="(e) => toggleGame(e, GameState.stop)" class="game-button">
-                      {{ $t('backtotitle') }}
-                    </div>
-                  </div>
-                  <div class="register-form" v-else>
-                    Sorry, Something went wrong.
-                    <div @click.stop="(e) => toggleGame(e, GameState.stop)" class="game-button">
-                      {{ $t('backtotitle') }}
+                  <div v-else>
+                    <div
+                      class="register-form"
+                      v-if="scoreSendingState === ScoreSendingState.pending"
+                    >
+                      <label for="username">{{ $t('yourName') }}</label
+                      ><br />
+                      <input name="username" v-model="username" maxlength="25" /><br />
+                      <div class="game-button" @click.stop="registerUserScore">
+                        {{ $t('submit') }}
+                      </div>
                     </div>
                     <div
-                      @click.stop="scoreSendingState = ScoreSendingState.pending"
-                      class="game-button"
+                      class="result-container"
+                      v-else-if="scoreSendingState === ScoreSendingState.sending"
                     >
-                      {{ $t('sendAgain') }}
+                      Sending...
+                    </div>
+                    <div
+                      class="result-container"
+                      v-else-if="scoreSendingState === ScoreSendingState.sent"
+                    >
+                      <div>{{ $t('congrats') }}</div>
+                      <div>{{ $t('rank', { count: rank, ordinal: true }) }}</div>
+                      <div @click.stop="(e) => toggleGame(e, GameState.stop)" class="game-button">
+                        {{ $t('backtotitle') }}
+                      </div>
+                    </div>
+                    <div class="register-form" v-else>
+                      Sorry, Something went wrong.
+                      <div @click.stop="(e) => toggleGame(e, GameState.stop)" class="game-button">
+                        {{ $t('backtotitle') }}
+                      </div>
+                      <div
+                        @click.stop="scoreSendingState = ScoreSendingState.pending"
+                        class="game-button"
+                      >
+                        {{ $t('sendAgain') }}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-              <div class="main-container" v-else>
-                <div>{{ $t('title') }}</div>
-                <div class="level-container">
-                  <div
-                    class="game-button"
-                    :class="[level === Level.easy ? 'level-selected' : '']"
-                    :data-value="Level.easy"
-                    @click.stop="setLevel"
-                  >
-                    {{ $t('easy') }}
-                  </div>
-                  <div
-                    class="game-button"
-                    :class="[level === Level.hard ? 'level-selected' : '']"
-                    :data-value="Level.hard"
-                    @click.stop="setLevel"
-                  >
-                    {{ $t('hard') }}
-                  </div>
-                </div>
-                <div
-                  @click.prevent="(e) => toggleGame(e, GameState.playing)"
-                  id="start-button"
-                  class="game-button"
-                  :class="{
-                    'startbotton-focused': isFocused
-                  }"
-                >
-                  {{ $t('start') }}
+                <div class="main-container" v-else>
+                  <MenuScene
+                    :level="
+                      // line break for eslint
+                      level as Level
+                    "
+                    :is-focused="isFocused"
+                    @setLevel="(e) => setLevel(e)"
+                    @toggleGame="(e, gameState) => toggleGame(e, gameState)"
+                  />
                 </div>
               </div>
             </div>
@@ -1050,9 +1135,12 @@ button:active {
 }
 
 .main-window {
-  width: 100%;
   border: solid 2px var(--border-color);
   border-radius: 20px;
+  width: 100%;
+}
+
+.compete-mode {
   margin: 0px;
   padding: 0px;
   display: flex;
@@ -1218,7 +1306,7 @@ ul {
   background-color: v-bind('timeBarColor');
 }
 
-.main-window {
+.compete-mode {
   position: relative;
 }
 
@@ -1261,6 +1349,16 @@ ul {
   transform: rotate(90deg);
 }
 
+.practice-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.practice-zhuyin {
+  font-size: 2em;
+}
+
 @media screen and (min-width: 1040px) {
   .main-section {
     display: grid;
@@ -1280,7 +1378,7 @@ ul {
   .interacrive-part {
     width: 1040px;
   }
-  .main-window {
+  .compete-mode {
     height: 360px;
   }
   .result-container {
@@ -1298,7 +1396,7 @@ ul {
   .interacrive-part {
     width: 960px;
   }
-  .main-window {
+  .compete-mode {
     height: 360px;
   }
   .sentence-container {
@@ -1323,7 +1421,7 @@ ul {
     width: 580px;
     justify-content: space-between;
   }
-  .main-window {
+  .compete-mode {
     height: 150px;
     padding: 10px 0;
   }

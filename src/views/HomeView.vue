@@ -796,7 +796,15 @@ const shareToSocial = (socialMedia: SocialMedia) => {
                                   >
                                     <div v-if="!hideZhuyin || zhuyin.done">
                                       <span
-                                        v-if="verticalZhuyin && zhuyin.char === Zhuyin.tone1"
+                                        v-if="
+                                          verticalZhuyin &&
+                                          (zhuyin.char === Zhuyin.tone1 ||
+                                            zhuyin.char === Zhuyin.exclamation ||
+                                            zhuyin.char === Zhuyin.question ||
+                                            zhuyin.char === Zhuyin.juhao ||
+                                            zhuyin.char === Zhuyin.douhao ||
+                                            zhuyin.char === Zhuyin.dunhao)
+                                        "
                                       ></span>
                                       <span v-else-if="zhuyin.char === Zhuyin.tone1">‾</span>
                                       <span
@@ -834,7 +842,15 @@ const shareToSocial = (socialMedia: SocialMedia) => {
                                   >
                                     <div v-if="!hideZhuyin || zhuyin.done">
                                       <span
-                                        v-if="verticalZhuyin && zhuyin.char === Zhuyin.tone1"
+                                        v-if="
+                                          verticalZhuyin &&
+                                          (zhuyin.char === Zhuyin.tone1 ||
+                                            zhuyin.char === Zhuyin.exclamation ||
+                                            zhuyin.char === Zhuyin.question ||
+                                            zhuyin.char === Zhuyin.juhao ||
+                                            zhuyin.char === Zhuyin.douhao ||
+                                            zhuyin.char === Zhuyin.dunhao)
+                                        "
                                       ></span>
                                       <span v-else-if="zhuyin.char === Zhuyin.tone1">‾</span>
                                       <span
@@ -878,7 +894,15 @@ const shareToSocial = (socialMedia: SocialMedia) => {
                                 >
                                   <div v-if="!hideZhuyin || zhuyin.done" class="">
                                     <span
-                                      v-if="verticalZhuyin && zhuyin.char === Zhuyin.tone1"
+                                      v-if="
+                                        verticalZhuyin &&
+                                        (zhuyin.char === Zhuyin.tone1 ||
+                                          zhuyin.char === Zhuyin.exclamation ||
+                                          zhuyin.char === Zhuyin.question ||
+                                          zhuyin.char === Zhuyin.juhao ||
+                                          zhuyin.char === Zhuyin.douhao ||
+                                          zhuyin.char === Zhuyin.dunhao)
+                                      "
                                     ></span>
                                     <span v-else-if="zhuyin.char === Zhuyin.tone1">‾</span>
                                     <span
@@ -1433,6 +1457,7 @@ ul {
     top: 15px;
   }
   .translation {
+    margin-top: 10px;
     font-size: 0.8em;
   }
   .sentence-container {

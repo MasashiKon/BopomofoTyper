@@ -12,12 +12,20 @@ const generateSentences = (
   level: Level,
   translationIndex: { index: number }
 ) => {
+  if (!res.data.data) return
   const resSentences: any[] = res.data.data[`sentences_${level}_${innerLevel}Collection`].edges
   const randomizedSentences = []
-  while (resSentences.length > 0) {
-    const index = Math.floor(Math.random() * resSentences.length)
-    const pickedSentence = resSentences.splice(index, 1)
-    randomizedSentences.push(...pickedSentence)
+
+  if (level !== Level.practice) {
+    while (resSentences.length > 0) {
+      const index = Math.floor(Math.random() * resSentences.length)
+      const pickedSentence = resSentences.splice(index, 1)
+      randomizedSentences.push(...pickedSentence)
+    }
+  } else {
+    while (resSentences.length > 0) {
+      randomizedSentences.push(resSentences.shift())
+    }
   }
 
   for (const sentenceNode of randomizedSentences) {
@@ -236,31 +244,47 @@ const generateSentences = (
 
 export default async (sentences: SentenceContainer, level: Level) => {
   const translationIndex = { index: 1 }
-  const res1 = await axios.post(
-    import.meta.env.VITE_DB_URL,
-    {
-      query: generateQuery(level, 1)
-    },
-    {
-      headers: {
-        apikey: import.meta.env.VITE_DB_APIKEY
+  if (level !== Level.practice) {
+    const res1 = await axios.post(
+      import.meta.env.VITE_DB_URL,
+      {
+        query: generateQuery(level, 1)
+      },
+      {
+        headers: {
+          apikey: import.meta.env.VITE_DB_APIKEY
+        }
       }
-    }
-  )
+    )
 
-  generateSentences(res1, sentences.low, 1, level, translationIndex)
+    generateSentences(res1, sentences.low, 1, level, translationIndex)
 
-  const res2 = await axios.post(
-    import.meta.env.VITE_DB_URL,
-    {
-      query: generateQuery(level, 2)
-    },
-    {
-      headers: {
-        apikey: import.meta.env.VITE_DB_APIKEY
+    const res2 = await axios.post(
+      import.meta.env.VITE_DB_URL,
+      {
+        query: generateQuery(level, 2)
+      },
+      {
+        headers: {
+          apikey: import.meta.env.VITE_DB_APIKEY
+        }
       }
-    }
-  )
+    )
 
-  generateSentences(res2, sentences.high, 2, level, translationIndex)
+    generateSentences(res2, sentences.high, 2, level, translationIndex)
+  } else {
+    const res = await axios.post(
+      import.meta.env.VITE_DB_URL,
+      {
+        query: generateQuery(level, 2)
+      },
+      {
+        headers: {
+          apikey: import.meta.env.VITE_DB_APIKEY
+        }
+      }
+    )
+
+    generateSentences(res, sentences.practice[1], 2, level, translationIndex)
+  }
 }

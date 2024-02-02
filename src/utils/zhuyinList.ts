@@ -1,5 +1,5 @@
 import { Zhuyin, ZhuyinPronunciation } from '@/type/enums'
-import type { PracticeModeZhuyin, Sentence } from '@/type/types'
+import type { PracticeModeZhuyin } from '@/type/types'
 
 export const practiceModeZhuyinList: PracticeModeZhuyin[] = [
   { char: Zhuyin.b, pronunciation: ZhuyinPronunciation.b },
@@ -37,4 +37,4 @@ export const practiceModeZhuyinList: PracticeModeZhuyin[] = [
   { char: Zhuyin.er, pronunciation: ZhuyinPronunciation.er }
 ]
 
-export const practiceModeToneList: Sentence[] = [{ chunks: [], done: false, sentense: '' }]
+export default practiceModeZhuyinList

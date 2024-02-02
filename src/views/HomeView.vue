@@ -24,7 +24,7 @@ import {
 import getCorrespondingKeys from '@/utils/getCorrespondingKeys'
 import { isChuck, isWord } from '@/utils/verifyTypes'
 import fetchSentences from '@/utils/fetchSentences'
-import { practiceModeZhuyinList } from '@/utils/zhuyinList'
+import practiceModeZhuyinList from '@/utils/zhuyinList'
 import VisualKeyboard from '@/components/VisualKeyboard.vue'
 import RankingContainer from '@/components/RankingContainer.vue'
 import { reverseZhuyin } from '@/utils/convertZhuyin'
@@ -123,7 +123,7 @@ const timeLimitStr = computed(() => {
 })
 
 const currentNotch = computed(() => {
-  if (streak.value > streakThreshold && sentences.high.length) {
+  if (streak.value > streakThreshold && (sentences.high.length || sentences.practice[1].length)) {
     return Notch.high
   } else if (sentences.low.length) {
     return Notch.low
@@ -146,13 +146,19 @@ const timeBarColor = computed(() => {
 
 const currentSentence = computed(() => {
   if (level.value === Level.practice && currentNotch.value === Notch.low) return null
-  if (!sentences.low.length && !sentences.high.length) return null
+  if (!sentences.low.length && !sentences.high.length && !sentences.practice[1].length) return null
   // // @ts-ignore
   // if (responsiveVoice.isPlaying()) {
   //   // @ts-ignore
   //   responsiveVoice.cancel()
   // }
-  if (currentNotch.value === Notch.low) {
+  if (level.value === Level.practice && currentNotch.value === Notch.high) {
+    if (isVolumeOn.value) {
+      // @ts-ignore
+      responsiveVoice.speak(sentences.practice[1][0].sentense)
+    }
+    return sentences.practice[1][0]
+  } else if (currentNotch.value === Notch.low) {
     if (isVolumeOn.value) {
       // @ts-ignore
       responsiveVoice.speak(sentences.low[0].sentense)
@@ -178,9 +184,6 @@ const currentPracticeZhuyin = computed(() => {
       responsiveVoice.speak(sentences.practice[0][0].char)
     }
     return sentences.practice[0][0]
-  } else if (currentNotch.value === Notch.high) {
-    if (sentences.practice[1].length < 0) return null
-    return null
   } else {
     return null
   }
@@ -217,20 +220,20 @@ const startGame = async () => {
     // @ts-ignore
     responsiveVoice.setDefaultVoice('Chinese Female')
     while (sentences.practice[0].length > 0) {
-      sentences.practice.shift()
+      sentences.practice[0].shift()
     }
     while (sentences.practice[1].length > 0) {
-      sentences.practice.shift()
+      sentences.practice[1].shift()
     }
-    while (sentences.high.length > 0) {
-      sentences.high.shift()
-    }
+    initiateStatus()
     const zhuyinList = [...practiceModeZhuyinList]
     while (zhuyinList.length > 0) {
       const index = Math.floor(Math.random() * zhuyinList.length)
       const pickedZhuyin = zhuyinList.splice(index, 1)
       sentences.practice[0].push(...pickedZhuyin)
     }
+
+    await fetchSentences(sentences, level.value as Level)
   } else {
     // @ts-ignore
     responsiveVoice.setDefaultVoice('Chinese Taiwan Male')
@@ -393,13 +396,32 @@ const detectKeydown = (e: KeyboardEvent | null, clickedKey?: string) => {
         if (key === getCorrespondingKeys(answer, lang.value)) {
           sentences.practice[0].shift()
           if (sentences.practice[0].length === 0) {
+            streak.value = streakThreshold + 1
+          }
+        }
+      }
+    } else if (level.value === Level.practice && currentNotch.value === Notch.high) {
+      if (!kanjiArr.value || !kanjiArr.value.length) return
+
+      const answer: ZhuyinChar | undefined = kanjiArr.value[0].zhuyin.find((zhuyin) => !zhuyin.done)
+      if (!answer) return
+      const evaluateStatus = () => {
+        if (kanjiArr.value[0].zhuyin.every((zhuyin) => zhuyin.done)) {
+          kanjiArr.value[0].done = true
+          kanjiArr.value.shift()
+        }
+        if (!kanjiArr.value.length) {
+          sentences.practice[1].shift()
+          if (!sentences.practice[1].length) {
             gameState.value = GameState.stop
           }
         }
       }
-      // else {
-      //   streak.value = streakThreshold + 1
-      // }
+
+      if (key === getCorrespondingKeys(answer.char, lang.value)) {
+        answer.done = true
+        evaluateStatus()
+      }
     } else {
       if (!kanjiArr.value || !kanjiArr.value.length) return
 
@@ -724,7 +746,7 @@ const shareToSocial = (socialMedia: SocialMedia) => {
             >
               <div class="compete-mode" v-if="level === Level.practice">
                 <div class="main-container" v-if="gameState === GameState.playing">
-                  <div class="practice-container" v-if="currentPracticeZhuyin">
+                  <div class="practice-container" v-if="currentNotch === Notch.low">
                     <div class="practice-zhuyin">
                       {{ currentPracticeZhuyin.char }}
                     </div>
@@ -732,6 +754,37 @@ const shareToSocial = (socialMedia: SocialMedia) => {
                       {{ currentPracticeZhuyin.pronunciation }}
                     </div>
                   </div>
+
+                  <ul
+                    class="practice-container sentence-container"
+                    v-if="currentNotch === Notch.high"
+                  >
+                    <li v-for="(chunk, cIndex) in currentSentence.chunks" :key="'chunk' + cIndex">
+                      <ul class="chunk-container">
+                        <li v-for="(word, wIndex) in chunk.word" :key="'word' + cIndex + wIndex">
+                          <ul class="practice-kanji-container">
+                            <li>
+                              <div :class="{ pressed: word.done }">{{ word.display }}</div>
+                              <ul class="practice-zyuin-container">
+                                <li
+                                  v-for="(zhuyin, zIndex) in word.zhuyin"
+                                  :key="'zhuin' + cIndex + wIndex + zIndex"
+                                  :class="{ pressed: zhuyin.done }"
+                                >
+                                  <div v-if="!hideZhuyin || zhuyin.done">
+                                    <span v-if="zhuyin.char === Zhuyin.tone1">‾</span>
+                                    <span v-else>
+                                      {{ zhuyin.char }}
+                                    </span>
+                                  </div>
+                                </li>
+                              </ul>
+                            </li>
+                          </ul>
+                        </li>
+                      </ul>
+                    </li>
+                  </ul>
                 </div>
                 <div class="main-container" v-else-if="gameState === GameState.stop">
                   <MenuScene
@@ -1253,6 +1306,18 @@ ul {
 .kanji-container {
   display: flex;
   text-align: center;
+}
+
+.practice-kanji-container {
+  display: flex;
+  text-align: center;
+  font-size: 2em;
+}
+
+.practice-zyuin-container {
+  font-size: 0.5em;
+  display: flex;
+  justify-content: center;
 }
 
 .char-container {

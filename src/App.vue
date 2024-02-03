@@ -3,7 +3,8 @@ import { RouterView } from 'vue-router'
 import { onMounted } from 'vue'
 import i18next from 'i18next'
 
-import { LocalStrageName } from './type/enums';
+import { LocalStrageName } from './type/enums'
+import HomeHeader from './components/HomeHeader.vue'
 
 onMounted(() => {
   if (localStorage.getItem(LocalStrageName.userLang) === null) {
@@ -25,14 +26,17 @@ onMounted(() => {
       </nav>
     </div> 
   </header> -->
-
+  <HomeHeader />
   <RouterView />
 </template>
 
 <style scoped>
 * {
   font-size: 14px;
-  font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+  font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva,
+    Verdana, sans-serif;
+  --background: #d2dbd6;
+  --border-color: #3c493f;
 }
 /* header {
   line-height: 1.5;

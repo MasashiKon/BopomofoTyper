@@ -25,9 +25,9 @@ import getCorrespondingKeys from '@/utils/getCorrespondingKeys'
 import { isChuck, isWord } from '@/utils/verifyTypes'
 import fetchSentences from '@/utils/fetchSentences'
 import practiceModeZhuyinList from '@/utils/zhuyinList'
+import { reverseZhuyin } from '@/utils/convertZhuyin'
 import VisualKeyboard from '@/components/VisualKeyboard.vue'
 import RankingContainer from '@/components/RankingContainer.vue'
-import { reverseZhuyin } from '@/utils/convertZhuyin'
 import MenuScene from '@/components/MenuScene.vue'
 
 const gameTime = 120
@@ -1128,7 +1128,6 @@ const shareToSocial = (socialMedia: SocialMedia) => {
   --button-color: #b3bfb8;
   --button-color-active: #d2dbd6;
   --button-color-selected: #7e8d85;
-  --border-color: #3c493f;
   --active-color: #c9eddc;
   --key-size: 40px;
   --row-gap: 15px;

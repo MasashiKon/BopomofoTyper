@@ -1123,11 +1123,9 @@ const shareToSocial = (socialMedia: SocialMedia) => {
 }
 
 * {
-  --text-height: 30px;
   --background: #d2dbd6;
   --button-color: #b3bfb8;
   --button-color-active: #d2dbd6;
-  --button-color-selected: #7e8d85;
   --active-color: #c9eddc;
   --key-size: 40px;
   --row-gap: 15px;
@@ -1355,31 +1353,6 @@ ul {
   display: flex;
   flex-direction: column;
   justify-content: space-evenly;
-}
-
-.game-button {
-  width: 120px;
-  height: var(--text-height);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: var(--button-color);
-  border-radius: 3px;
-  border: solid 1px var(--border-color);
-  margin: 1px;
-  user-select: none;
-  transition:
-    transform 0.2s,
-    background-color 0.2s;
-}
-
-.game-button:hover {
-  background-color: var(--button-color-selected);
-  cursor: pointer;
-}
-
-.game-button:active {
-  transform: scale(0.95);
 }
 
 .level-selected {

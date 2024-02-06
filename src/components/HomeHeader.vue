@@ -7,6 +7,9 @@
       <li class="page-link">
         <a href="/">Home</a>
       </li>
+      <li class="page-link">
+        <a href="/Converter">Converter</a>
+      </li>
     </ul>
   </header>
 </template>
@@ -14,9 +17,9 @@
 <style>
 header {
   width: 100%;
-  height: 80px;
+  height: var(--header-height);
   background-color: var(--background);
-  border: px var(--border-color);
+  border: var(--border-width) var(--border-color);
   border-bottom-style: solid;
   display: flex;
   justify-content: space-between;
@@ -33,6 +36,7 @@ header {
 .link-container {
   height: 100%;
   display: flex;
+  justify-content: space-around;
   align-items: center;
   width: 80%;
 }

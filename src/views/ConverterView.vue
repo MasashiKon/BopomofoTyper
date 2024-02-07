@@ -1,11 +1,21 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { ref } from 'vue'
+
+const wordToConvert = ref('')
+const convertedZhuyin = ref('')
+
+const convertToZhuyin = () => {
+  convertedZhuyin.value = wordToConvert.value
+  wordToConvert.value = ''
+}
+</script>
 
 <template>
   <main>
     <div class="converter-container">
-      <input type="text" />
-      <div class="game-button">Convert</div>
-      <input type="text" />
+      <input type="text" v-model="wordToConvert" />
+      <div class="game-button" @click="convertToZhuyin">Convert</div>
+      <input type="text" v-model="convertedZhuyin" />
     </div>
   </main>
 </template>

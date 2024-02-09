@@ -1,11 +1,25 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { convertZhuyin } from '@/utils/convertZhuyin'
 
 const wordToConvert = ref('')
 const convertedZhuyin = ref('')
 
 const convertToZhuyin = () => {
-  convertedZhuyin.value = wordToConvert.value
+  const letters = wordToConvert.value.split('')
+  const convertedArr = []
+  while (letters.length > 0) {
+    if (`${letters[0]}${letters[1]}${letters[2]}`.match(/ang|eng/)) {
+      convertedArr.push(convertZhuyin(letters.splice(0, 3).join('')))
+    } else if (`${letters[0]}${letters[1]}`.match(/zh|ch|sh|ai|ei|ao|ou|an|en|er/)) {
+      convertedArr.push(convertZhuyin(letters.splice(0, 2).join('')))
+    } else if (`${letters[0]}`.match(/b|p|m|f|d|t|n|l|g|k|h|j|q|x|r|z|c|s|a|o|e|ê|i|u|ü/)) {
+      convertedArr.push(convertZhuyin(letters.splice(0, 1).join('')))
+    } else {
+      convertedArr.push(letters.splice(0, 1))
+    }
+  }
+  convertedZhuyin.value = convertedArr.join('')
   wordToConvert.value = ''
 }
 </script>

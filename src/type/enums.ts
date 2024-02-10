@@ -119,6 +119,7 @@ export enum MeanOfChunk {
   subordinateClause = 'subordinateClause',
   timeClause = 'timeClause',
   subjectVerb = 'subjectVerb',
+  verbObject = 'verbObject',
   subject = 'subject'
 }
 

@@ -30,14 +30,44 @@ onMounted(() => {
   <RouterView />
 </template>
 
-<style scoped>
+<style>
 * {
   font-size: 14px;
   font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva,
     Verdana, sans-serif;
   --background: #d2dbd6;
   --border-color: #3c493f;
+  --text-height: 30px;
+  --button-color-selected: #7e8d85;
+  --header-height: 80px;
+  --border-width: 2px;
 }
+
+.game-button {
+  width: 120px;
+  height: var(--text-height);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--button-color);
+  border-radius: 3px;
+  border: solid 1px var(--border-color);
+  margin: 1px;
+  user-select: none;
+  transition:
+    transform 0.2s,
+    background-color 0.2s;
+}
+
+.game-button:hover {
+  background-color: var(--button-color-selected);
+  cursor: pointer;
+}
+
+.game-button:active {
+  transform: scale(0.95);
+}
+
 /* header {
   line-height: 1.5;
   max-height: 100vh;

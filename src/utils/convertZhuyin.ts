@@ -52,6 +52,8 @@ export const convertZhuyin = (keyword: string): Zhuyin => {
       return Zhuyin.e
     case 'e2':
       return Zhuyin.e2
+    case 'ê':
+      return Zhuyin.e2
     case 'ai':
       return Zhuyin.ai
     case 'ei':
@@ -75,6 +77,8 @@ export const convertZhuyin = (keyword: string): Zhuyin => {
     case 'u':
       return Zhuyin.u
     case 'u2':
+      return Zhuyin.u2
+    case 'ü':
       return Zhuyin.u2
     case 'tone1':
       return Zhuyin.tone1

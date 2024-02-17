@@ -343,7 +343,7 @@ onMounted(async () => {
     .select()
     .order('score', { ascending: false }) //.limit(100)
   if (!error) {
-    allRankers.forEach((ranker) => {
+    allRankers.forEach((ranker: Ranker) => {
       rankers.push({ name: ranker.name, score: ranker.score, date: new Date(ranker.date) })
     })
   }
@@ -636,10 +636,10 @@ const registerUserScore = async () => {
       while (rankers.length > 0) {
         rankers.shift()
       }
-      allRankers.forEach((ranker) => {
+      allRankers.forEach((ranker: Ranker) => {
         rankers.push({ name: ranker.name, score: ranker.score, date: new Date(ranker.date) })
       })
-      const rankedIndex = allRankers.findIndex((ranker) => ranker.id === newRanker[0].id)
+      const rankedIndex = allRankers.findIndex((ranker: Ranker) => ranker.id === newRanker[0].id)
       if (rankedIndex >= 0) {
         rank.value = rankedIndex + 1
       } else {
@@ -699,7 +699,7 @@ const shareToSocial = (socialMedia: SocialMedia) => {
     <form>
       <select v-model="locale">
         <option value="en">en</option>
-        <option value="fr">fr</option>
+        <option value="ja">ja</option>
       </select>
       <p>{{ $t('welcome') }}</p>
     </form>
@@ -710,11 +710,9 @@ const shareToSocial = (socialMedia: SocialMedia) => {
         {{ $t('title') }}
       </h1>
       <div class="main-content">
-        <div class="current-lang">
-          <!-- {{ $t('translation') }}: {{ $t('currentLang') }} -->
-        </div>
-        <!-- <button v-on:click="changeLanguage('en')" class="lang-button">{{ $t('english') }}</button> -->
-        <!-- <button v-on:click="changeLanguage('ja')" class="lang-button">{{ $t('japanese') }}</button> -->
+        <div class="current-lang">{{ $t('translation') }}: {{ $t('currentLang') }}</div>
+        <button v-on:click="changeLanguage('en')" class="lang-button">{{ $t('english') }}</button>
+        <button v-on:click="changeLanguage('ja')" class="lang-button">{{ $t('japanese') }}</button>
         <div
           id="game-container"
           tabindex="0"
@@ -834,23 +832,23 @@ const shareToSocial = (socialMedia: SocialMedia) => {
                     :class="{ 'button-on': verticalZhuyin }"
                     @click="toggleVerticalZhuyin"
                   >
-                    <!-- {{ $t('verticalZhuyin') }} -->
+                    {{ $t('verticalZhuyin') }}
                   </div>
                   <div
                     class="game-button"
                     :class="{ 'button-on': hideZhuyin }"
                     @click="toggleHideZhuyin"
                   >
-                    <!-- {{ $t('hideZhuyin') }} -->
+                    {{ $t('hideZhuyin') }}
                   </div>
                 </div>
                 <div class="main-container" v-if="gameState === GameState.playing">
                   <div class="time-bar"></div>
                   <div class="translation-and-sentence">
                     <div class="translation">
-                      <!-- {{
+                      {{
                         currentSentence ? $t(`sentence_${currentNotch}_${currentSentence.id}`) : ''
-                      }} -->
+                      }}
                     </div>
                     <ul v-if="currentSentence" class="sentence-container">
                       <li v-for="(chunk, cIndex) in currentSentence.chunks" :key="'chunk' + cIndex">
@@ -1018,16 +1016,16 @@ const shareToSocial = (socialMedia: SocialMedia) => {
                   <div v-if="!isRegisterFormOpen" class="result-interface-container">
                     <div class="result-button-container">
                       <div @click.stop="(e) => toggleGame(e, GameState.stop)" class="game-button">
-                        <!-- {{ $t('backtotitle') }} -->
+                        {{ $t('backtotitle') }}
                       </div>
                       <div
                         @click.stop="(e) => toggleGame(e, GameState.playing)"
                         class="game-button"
                       >
-                        <!-- {{ $t('playAgain') }} -->
+                        {{ $t('playAgain') }}
                       </div>
                       <div @click.stop="isRegisterFormOpen = true" class="game-button">
-                        <!-- {{ $t('registerScore') }} -->
+                        {{ $t('registerScore') }}
                       </div>
                     </div>
                     <div class="social-button-container">
@@ -1053,10 +1051,10 @@ const shareToSocial = (socialMedia: SocialMedia) => {
                       class="register-form"
                       v-if="scoreSendingState === ScoreSendingState.pending"
                     >
-                      <label for="username"> <!-- {{ $t('yourName') }} --> </label><br />
+                      <label for="username"> {{ $t('yourName') }} </label><br />
                       <input name="username" v-model="username" maxlength="25" /><br />
                       <div class="game-button" @click.stop="registerUserScore">
-                        <!-- {{ $t('submit') }} -->
+                        {{ $t('submit') }}
                       </div>
                     </div>
                     <div
@@ -1070,25 +1068,25 @@ const shareToSocial = (socialMedia: SocialMedia) => {
                       v-else-if="scoreSendingState === ScoreSendingState.sent"
                     >
                       <div>
-                        <!-- {{ $t('congrats') }} -->
+                        {{ $t('congrats') }}
                       </div>
                       <div>
-                        <!-- {{ $t('rank', { count: rank, ordinal: true }) }} -->
+                        {{ $t('rank', { count: rank, ordinal: true }) }}
                       </div>
                       <div @click.stop="(e) => toggleGame(e, GameState.stop)" class="game-button">
-                        <!-- {{ $t('backtotitle') }} -->
+                        {{ $t('backtotitle') }}
                       </div>
                     </div>
                     <div class="register-form" v-else>
                       Sorry, Something went wrong.
                       <div @click.stop="(e) => toggleGame(e, GameState.stop)" class="game-button">
-                        <!-- {{ $t('backtotitle') }} -->
+                        {{ $t('backtotitle') }}
                       </div>
                       <div
                         @click.stop="scoreSendingState = ScoreSendingState.pending"
                         class="game-button"
                       >
-                        <!-- {{ $t('sendAgain') }} -->
+                        {{ $t('sendAgain') }}
                       </div>
                     </div>
                   </div>
@@ -1121,10 +1119,10 @@ const shareToSocial = (socialMedia: SocialMedia) => {
     </section>
     <section class="description-section">
       <h2>
-        <!-- {{ $t('zhuyinDescriptionTitle') }} -->
+        {{ $t('zhuyinDescriptionTitle') }}
       </h2>
       <article>
-        <!-- {{ $t('zhuyinDescriptionText') }} -->
+        {{ $t('zhuyinDescriptionText') }}
       </article>
     </section>
   </main>

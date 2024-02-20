@@ -166,19 +166,19 @@ const currentSentence = computed(() => {
   if (level.value === Level.practice && currentNotch.value === Notch.high) {
     if (isVolumeOn.value) {
       // @ts-ignore
-      responsiveVoice.speak(sentences.practice[1][0].sentense)
+      // responsiveVoice.speak(sentences.practice[1][0].sentense)
     }
     return sentences.practice[1][0]
   } else if (currentNotch.value === Notch.low) {
     if (isVolumeOn.value) {
       // @ts-ignore
-      responsiveVoice.speak(sentences.low[0].sentense)
+      // responsiveVoice.speak(sentences.low[0].sentense)
     }
     return sentences.low[0]
   } else if (currentNotch.value === Notch.high) {
     if (isVolumeOn.value) {
       // @ts-ignore
-      responsiveVoice.speak(sentences.high[0].sentense)
+      // responsiveVoice.speak(sentences.high[0].sentense)
     }
     return sentences.high[0]
   } else {
@@ -192,7 +192,7 @@ const currentPracticeZhuyin = computed(() => {
     if (sentences.practice[0].length < 0) return null
     if (isVolumeOn.value && sentences.practice[0][0]) {
       // @ts-ignore
-      responsiveVoice.speak(sentences.practice[0][0].char)
+      // responsiveVoice.speak(sentences.practice[0][0].char)
     }
     return sentences.practice[0][0]
   } else {
@@ -226,10 +226,10 @@ const kanjiArr = computed((): Kanji[] => {
 
 let interval: number | null
 
-const startGame = async () => {
+const startGame = async () => {  
   if (level.value === Level.practice) {
     // @ts-ignore
-    responsiveVoice.setDefaultVoice('Chinese Female')
+    // responsiveVoice.setDefaultVoice('Chinese Female')
     while (sentences.practice[0].length > 0) {
       sentences.practice[0].shift()
     }
@@ -245,9 +245,9 @@ const startGame = async () => {
     }
 
     await fetchSentences(sentences, level.value as Level)
-  } else {
+  } else {    
     // @ts-ignore
-    responsiveVoice.setDefaultVoice('Chinese Taiwan Male')
+    // responsiveVoice.setDefaultVoice('Chinese Taiwan Male')
     gameState.value = GameState.loading
     while (sentences.low.length > 0) {
       sentences.low.shift()
@@ -353,7 +353,7 @@ onMounted(async () => {
   setVolume()
 
   // @ts-ignore
-  responsiveVoice.setDefaultVoice('Chinese Female')
+  // responsiveVoice.setDefaultVoice('Chinese Female')
 })
 
 const findTargetKey = (arr: Element[], passedKey: string) => {
@@ -701,7 +701,6 @@ const shareToSocial = (socialMedia: SocialMedia) => {
         <option value="en">en</option>
         <option value="ja">ja</option>
       </select>
-      <p>{{ $t('welcome') }}</p>
     </form>
   </div>
   <main>

@@ -230,29 +230,33 @@ const generateSentences = (
 
     sentences.push(sentenceContainer)
 
-    i18next.addResourceBundle('en', 'translation', {
-      [`sentence_${innerLevel}_${sentence.id}`]: sentence.translation_en
-    })
+    // i18next.addResourceBundle('en', 'translation', {
+    //   [`sentence_${innerLevel}_${sentence.id}`]: sentence.translation_en
+    // })
 
-    i18next.addResourceBundle('ja', 'translation', {
-      [`sentence_${innerLevel}_${sentence.id}`]: sentence.translation_ja
-    })
+    // i18next.addResourceBundle('ja', 'translation', {
+    //   [`sentence_${innerLevel}_${sentence.id}`]: sentence.translation_ja
+    // })
 
     translationIndex.index++
   }
 }
 
 export default async (sentences: SentenceContainer, level: Level) => {
+  const runtimeConfig = useRuntimeConfig()
+  console.log(i18next.resolvedLanguage);
+  
+
   const translationIndex = { index: 1 }
   if (level !== Level.practice) {
     const res1 = await axios.post(
-      process.env.VITE_DB_URL as string,
+      runtimeConfig.public.dbUrl as string,
       {
         query: generateQuery(level, 1)
       },
       {
         headers: {
-          apikey: process.env.VITE_DB_APIKEY
+          apikey: runtimeConfig.public.dbApikey
         }
       }
     )
@@ -260,13 +264,13 @@ export default async (sentences: SentenceContainer, level: Level) => {
     generateSentences(res1, sentences.low, 1, level, translationIndex)
 
     const res2 = await axios.post(
-      process.env.VITE_DB_URL as string,
+      runtimeConfig.public.dbUrl as string,
       {
         query: generateQuery(level, 2)
       },
       {
         headers: {
-          apikey: process.env.VITE_DB_APIKEY
+          apikey: runtimeConfig.public.dbApikey
         }
       }
     )
@@ -274,13 +278,13 @@ export default async (sentences: SentenceContainer, level: Level) => {
     generateSentences(res2, sentences.high, 2, level, translationIndex)
   } else {
     const res = await axios.post(
-      process.env.VITE_DB_URL as string,
+      runtimeConfig.public.dbUrl as string,
       {
         query: generateQuery(level, 2)
       },
       {
         headers: {
-          apikey: process.env.VITE_DB_APIKEY
+          apikey: runtimeConfig.public.dbApikey
         }
       }
     )

@@ -7,8 +7,21 @@ export default defineNuxtConfig({
   imports: {
     autoImport: true
   },
+  css: ['@fortawesome/fontawesome-svg-core/styles.css'],
+  runtimeConfig: {
+    // The private keys which are only available within server-side
+    apiSecret: '123',
+    // Keys within public, will be also exposed to the client-side
+    public: {
+      apiBase: '/api',
+      VITE_DB_URL: 'test',
+      dbUrl: '',
+      urlGen: '',
+      dbApikey: ''
+    }
+  },
   // @ts-ignore
   i18n: {
-    vueI18n: './i18n.config.ts', // if you are using custom path, default
+    vueI18n: './i18n.config.ts' // if you are using custom path, default
   }
 })

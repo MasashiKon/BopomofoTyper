@@ -11,6 +11,10 @@ export default defineNuxtConfig({
   runtimeConfig: {
     // The private keys which are only available within server-side
     apiSecret: '123',
+    dbUrl: '',
+    dbUrlGen: '',
+    urlGen: '',
+    dbApikey: '',
     // Keys within public, will be also exposed to the client-side
     public: {
       apiBase: '/api',

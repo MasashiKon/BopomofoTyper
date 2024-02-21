@@ -226,7 +226,7 @@ const kanjiArr = computed((): Kanji[] => {
 
 let interval: number | null
 
-const startGame = async () => {  
+const startGame = async () => {
   if (level.value === Level.practice) {
     // @ts-ignore
     // responsiveVoice.setDefaultVoice('Chinese Female')
@@ -245,7 +245,7 @@ const startGame = async () => {
     }
 
     await fetchSentences(sentences, level.value as Level)
-  } else {    
+  } else {
     // @ts-ignore
     // responsiveVoice.setDefaultVoice('Chinese Taiwan Male')
     gameState.value = GameState.loading
@@ -692,10 +692,16 @@ const shareToSocial = (socialMedia: SocialMedia) => {
       )
   }
 }
+
+const testAPI = async () => {
+  const { data } = await useFetch('/api/sentenses')
+  console.log(data.value?.hello)
+}
 </script>
 
 <template>
   <div>
+    <button @click="testAPI">test</button>
     <form>
       <select v-model="locale">
         <option value="en">en</option>

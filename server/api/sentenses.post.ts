@@ -5,12 +5,12 @@ import { Level } from '~/types/enums'
 
 export default defineEventHandler(async (event) => {
     const { dbUrl, urlGen, dbApikey, dbUrlGen } = useRuntimeConfig(event)
-      
+    const {level} = await readBody(event)    
 
       const res1 = await axios.post(
         dbUrl,
         {
-          query: generateQuery(Level.easy, 1)
+          query: generateQuery(level, 1)
         },
         {
           headers: {

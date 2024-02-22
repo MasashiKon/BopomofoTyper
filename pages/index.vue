@@ -694,7 +694,12 @@ const shareToSocial = (socialMedia: SocialMedia) => {
 }
 
 const testAPI = async () => {
-  const { data } = await useFetch('/api/sentenses')
+  const { data } = await useFetch('/api/sentenses', {
+    method: 'POST',
+    body: {
+      level: Level.easy
+    }
+  })
   console.log(data.value?.hello)
 }
 </script>

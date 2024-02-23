@@ -694,13 +694,17 @@ const shareToSocial = (socialMedia: SocialMedia) => {
 }
 
 const testAPI = async () => {
-  const { data } = await useFetch('/api/sentenses', {
+  type APIBody = {
+    notch1: any;
+    notch2: any;
+  }
+  const { data } = await useFetch<APIBody>('/api/sentenses', {
     method: 'POST',
     body: {
       level: Level.easy
     }
   })
-  console.log(data.value?.hello)
+  console.log(data.value?.notch1, data.value?.notch2)
 }
 </script>
 

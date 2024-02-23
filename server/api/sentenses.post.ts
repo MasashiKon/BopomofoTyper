@@ -18,11 +18,21 @@ export default defineEventHandler(async (event) => {
           }
         }
       )
-      
-      console.log(res1);
-      
+
+      const res2 = await axios.post(
+        dbUrl,
+        {
+          query: generateQuery(level, 2)
+        },
+        {
+          headers: {
+            apikey: dbApikey
+          }
+        }
+      )      
     
     return {
-      hello: res1.data.data
+      notch1: res1.data.data,
+      notch2: res2.data.data
     }
   })

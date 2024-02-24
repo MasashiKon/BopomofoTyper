@@ -227,6 +227,10 @@ const kanjiArr = computed((): Kanji[] => {
 let interval: number | null
 
 const startGame = async () => {
+  type APIBody = {
+    notch1: any
+    notch2: any
+  }
   if (level.value === Level.practice) {
     // @ts-ignore
     // responsiveVoice.setDefaultVoice('Chinese Female')
@@ -244,7 +248,14 @@ const startGame = async () => {
       sentences.practice[0].push(...pickedZhuyin)
     }
 
-    await fetchSentences(sentences, level.value as Level)
+    const { data } = await useFetch<APIBody>('/api/sentenses', {
+      method: 'POST',
+      body: {
+        level: level.value
+      }
+    })
+
+    await fetchSentences(sentences, data, level.value as Level)
   } else {
     // @ts-ignore
     // responsiveVoice.setDefaultVoice('Chinese Taiwan Male')
@@ -255,7 +266,16 @@ const startGame = async () => {
     while (sentences.high.length > 0) {
       sentences.high.shift()
     }
-    await fetchSentences(sentences, level.value as Level)
+
+    const { data } = await useFetch<APIBody>('/api/sentenses', {
+      method: 'POST',
+      body: {
+        level: level.value
+      }
+    })
+
+    console.log('cur', data.value)
+    await fetchSentences(sentences, data.value, level.value as Level)
     if (interval) {
       clearInterval(interval)
     }
@@ -695,8 +715,8 @@ const shareToSocial = (socialMedia: SocialMedia) => {
 
 const testAPI = async () => {
   type APIBody = {
-    notch1: any;
-    notch2: any;
+    notch1: any
+    notch2: any
   }
   const { data } = await useFetch<APIBody>('/api/sentenses', {
     method: 'POST',

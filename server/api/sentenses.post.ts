@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import axios, { type AxiosResponse } from 'axios'
-import generateQuery from '~/src/utils/generateQuery'
+import generateQuery  from '~/utils/generateQuery'
 import { Level } from '~/types/enums'
 
 export default defineEventHandler(async (event) => {

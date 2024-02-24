@@ -6,16 +6,19 @@ import type { Sentence, Chunk, Word, Kanji, ZhuyinChar, SentenceContainer } from
 import { Level } from '../types/enums'
 
 const generateSentences = (
-  res: AxiosResponse,
+  res: any,
   sentences: Sentence[],
   innerLevel: number,
   level: Level,
   translationIndex: { index: number }
 ) => {
-  if (!res.data.data) return
-  const resSentences: any[] = res.data.data[`sentences_${level}_${innerLevel}Collection`].edges
+  if (!res) return
+  console.log("toko", res);
+  const resSentences: any[] = res[`sentences_${level}_${innerLevel}Collection`].edges
   const randomizedSentences: any[] = []
 
+  console.log("koko", resSentences);
+  
   if (level !== Level.practice) {
     while (resSentences.length > 0) {
       const index = Math.floor(Math.random() * resSentences.length)
@@ -242,10 +245,9 @@ const generateSentences = (
   }
 }
 
-export default async (sentences: SentenceContainer, level: Level) => {
+export default async (sentences: SentenceContainer, data: any, level: Level) => {
   const runtimeConfig = useRuntimeConfig()
-  console.log(i18next.resolvedLanguage);
-  
+  console.log(i18next.resolvedLanguage)
 
   const translationIndex = { index: 1 }
   if (level !== Level.practice) {
@@ -261,7 +263,9 @@ export default async (sentences: SentenceContainer, level: Level) => {
       }
     )
 
-    generateSentences(res1, sentences.low, 1, level, translationIndex)
+    console.log('pre', data)
+
+    generateSentences(data.notch1, sentences.low, 1, level, translationIndex)
 
     const res2 = await axios.post(
       runtimeConfig.public.dbUrl as string,
@@ -275,7 +279,7 @@ export default async (sentences: SentenceContainer, level: Level) => {
       }
     )
 
-    generateSentences(res2, sentences.high, 2, level, translationIndex)
+    generateSentences(data.notch2, sentences.high, 2, level, translationIndex)
   } else {
     const res = await axios.post(
       runtimeConfig.public.dbUrl as string,

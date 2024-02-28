@@ -10,15 +10,19 @@ const generateSentences = (
   sentences: Sentence[],
   innerLevel: number,
   level: Level,
-  translationIndex: { index: number }
+  translationIndex: { index: number },
+  translations: {
+    en: { notch1: string[]; notch2: string[] }
+    ja: { notch1: string[]; notch2: string[] }
+  }
 ) => {
   if (!res) return
-  console.log("toko", res);
+  console.log('toko', res)
   const resSentences: any[] = res[`sentences_${level}_${innerLevel}Collection`].edges
   const randomizedSentences: any[] = []
 
-  console.log("koko", resSentences);
-  
+  console.log('koko', resSentences)
+
   if (level !== Level.practice) {
     while (resSentences.length > 0) {
       const index = Math.floor(Math.random() * resSentences.length)
@@ -237,6 +241,18 @@ const generateSentences = (
     //   [`sentence_${innerLevel}_${sentence.id}`]: sentence.translation_en
     // })
 
+    console.log(innerLevel)
+
+    if (innerLevel === 1) {
+      translations.en.notch1.push(sentence.translation_en)
+      translations.ja.notch1.push(sentence.translation_ja)
+    }
+
+    if (innerLevel === 2) {
+      translations.en.notch2.push(sentence.translation_en)
+      translations.ja.notch2.push(sentence.translation_ja)
+    }
+
     // i18next.addResourceBundle('ja', 'translation', {
     //   [`sentence_${innerLevel}_${sentence.id}`]: sentence.translation_ja
     // })
@@ -245,41 +261,23 @@ const generateSentences = (
   }
 }
 
-export default async (sentences: SentenceContainer, data: any, level: Level) => {
+export default async (
+  sentences: SentenceContainer,
+  data: any,
+  level: Level,
+  translations: {
+    en: { notch1: string[]; notch2: string[] }
+    ja: { notch1: string[]; notch2: string[] }
+  }
+) => {
   const runtimeConfig = useRuntimeConfig()
-  console.log(i18next.resolvedLanguage)
+  // console.log(i18next.resolvedLanguage)
 
   const translationIndex = { index: 1 }
   if (level !== Level.practice) {
-    const res1 = await axios.post(
-      runtimeConfig.public.dbUrl as string,
-      {
-        query: generateQuery(level, 1)
-      },
-      {
-        headers: {
-          apikey: runtimeConfig.public.dbApikey
-        }
-      }
-    )
+    generateSentences(data.notch1, sentences.low, 1, level, translationIndex, translations)
 
-    console.log('pre', data)
-
-    generateSentences(data.notch1, sentences.low, 1, level, translationIndex)
-
-    const res2 = await axios.post(
-      runtimeConfig.public.dbUrl as string,
-      {
-        query: generateQuery(level, 2)
-      },
-      {
-        headers: {
-          apikey: runtimeConfig.public.dbApikey
-        }
-      }
-    )
-
-    generateSentences(data.notch2, sentences.high, 2, level, translationIndex)
+    generateSentences(data.notch2, sentences.high, 2, level, translationIndex, translations)
   } else {
     const res = await axios.post(
       runtimeConfig.public.dbUrl as string,

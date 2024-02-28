@@ -122,6 +122,10 @@ const typingStatistics: TypingStatistics = reactive({
 })
 const rankers: Ranker[] = reactive([])
 const addedTime: number[] = reactive([])
+const translations = reactive<{
+  en: { notch1: string[]; notch2: string[] }
+  ja: { notch1: string[]; notch2: string[] }
+}>({ en: { notch1: [], notch2: [] }, ja: { notch1: [], notch2: [] } })
 
 const sentences: SentenceContainer = reactive({
   practice: [[], []],
@@ -255,7 +259,7 @@ const startGame = async () => {
       }
     })
 
-    await fetchSentences(sentences, data, level.value as Level)
+    await fetchSentences(sentences, data, level.value as Level, translations)
   } else {
     // @ts-ignore
     // responsiveVoice.setDefaultVoice('Chinese Taiwan Male')
@@ -274,8 +278,8 @@ const startGame = async () => {
       }
     })
 
-    console.log('cur', data.value)
-    await fetchSentences(sentences, data.value, level.value as Level)
+    await fetchSentences(sentences, data.value, level.value as Level, translations)
+
     if (interval) {
       clearInterval(interval)
     }

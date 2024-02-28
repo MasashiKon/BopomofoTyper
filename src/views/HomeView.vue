@@ -218,7 +218,7 @@ let interval: number | null
 const startGame = async () => {
   if (level.value === Level.practice) {
     // @ts-ignore
-    responsiveVoice.setDefaultVoice('Chinese Female')
+    // responsiveVoice.setDefaultVoice('Chinese Female')
     while (sentences.practice[0].length > 0) {
       sentences.practice[0].shift()
     }

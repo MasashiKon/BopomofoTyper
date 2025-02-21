@@ -13,6 +13,75 @@ const generateSentences = (
   translationIndex: { index: number }
 ) => {
   if (!res.data.data) return
+  if (level == Level.debug) {
+    const word = res.data.data.wordsCollection.edges[0].node
+
+    const wordContainer: Word = {
+      display: word.display,
+      kanji: [],
+      partOfSpeech: word.partOfSpeech
+    }
+
+    for (const kanjiLiteral of word.kanji) {
+      for (const kanjiNode of word.words_kanjiCollection.edges) {
+        const kanji = kanjiNode.node.kanji
+        if (kanji.display === kanjiLiteral) {
+          const kanjiContainer: Kanji = {
+            display: kanji.display,
+            done: false,
+            zhuyin: []
+          }
+
+          for (const zhuyinLiteral of kanji.zhuyin) {
+            for (const zhuyinNode of kanji.kanji_zhuyinCollection.edges) {
+              const zhuyin = zhuyinNode.node.zhuyin_zhuyin
+              if (zhuyin === zhuyinLiteral) {
+                const zhuyinContainer: ZhuyinChar = {
+                  char: convertZhuyin(zhuyin),
+                  done: false
+                }
+                kanjiContainer.zhuyin.push(zhuyinContainer)
+                break
+              }
+            }
+          }
+
+          if (kanji.zhuyin2) {
+            kanjiContainer.zhuyin2 = []
+            for (const zhuyinLiteral of kanji.zhuyin2) {
+              for (const zhuyinNode of kanji.kanji_zhuyinCollection.edges) {
+                const zhuyin = zhuyinNode.node.zhuyin_zhuyin
+                if (zhuyin === zhuyinLiteral) {
+                  const zhuyinContainer: ZhuyinChar = {
+                    char: convertZhuyin(zhuyin),
+                    done: false
+                  }
+                  kanjiContainer.zhuyin2.push(zhuyinContainer)
+                  break
+                }
+              }
+            }
+          }
+
+          wordContainer.kanji.push(kanjiContainer)
+
+          break
+        }
+      }
+    }
+
+    const sentenceContainer: Sentence = {
+      id: 0,
+      sentense: word.display,
+      chunks: [wordContainer],
+      done: false
+    }
+
+    sentences.push(sentenceContainer)
+
+    return
+  }
+
   const resSentences: any[] = res.data.data[`sentences_${level}_${innerLevel}Collection`].edges
   const randomizedSentences = []
 
@@ -242,9 +311,52 @@ const generateSentences = (
   }
 }
 
-export default async (sentences: SentenceContainer, level: Level) => {
+export default async (sentences: SentenceContainer, level: Level, debug_id?: number) => {
   const translationIndex = { index: 1 }
-  if (level !== Level.practice) {
+  if (level == Level.debug) {
+    console.log(debug_id)
+    const res1 = await axios.post(
+      import.meta.env.VITE_DB_URL,
+      {
+        query: `{
+                  wordsCollection(filter: {id: {eq: ${debug_id ? debug_id : 1}}}) {
+                    edges {
+                      node {
+                        display
+                        kanji
+                        partOfSpeech
+                        words_kanjiCollection {
+                          edges {
+                            node {
+                              kanji {
+                                display
+                                zhuyin
+                                zhuyin2
+                                kanji_zhuyinCollection {
+                                  edges {
+                                    node {
+                                      zhuyin_zhuyin
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }`
+      },
+      {
+        headers: {
+          apikey: import.meta.env.VITE_DB_APIKEY
+        }
+      }
+    )
+
+    generateSentences(res1, sentences.low, 1, level, translationIndex)
+  } else if (level !== Level.practice) {
     const res1 = await axios.post(
       import.meta.env.VITE_DB_URL,
       {

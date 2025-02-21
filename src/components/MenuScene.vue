@@ -20,6 +20,14 @@ const emit = defineEmits(['setLevel', 'toggleGame'])
     </div>
     <div
       class="game-button"
+      :class="[level === Level.debug ? 'level-selected' : '']"
+      :data-value="Level.debug"
+      @click.stop="(e) => emit('setLevel', e)"
+    >
+      {{ $t('debug') }}
+    </div>
+    <div
+      class="game-button"
       :class="[level === Level.easy ? 'level-selected' : '']"
       :data-value="Level.easy"
       @click.stop="(e) => emit('setLevel', e)"

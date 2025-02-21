@@ -120,7 +120,8 @@ export enum MeanOfChunk {
   timeClause = 'timeClause',
   subjectVerb = 'subjectVerb',
   verbObject = 'verbObject',
-  subject = 'subject'
+  subject = 'subject',
+  interrogative = 'interrogative'
 }
 
 export enum AvailableLang {
@@ -139,6 +140,7 @@ export enum LocalStrageName {
 
 export enum Level {
   practice = 'practice',
+  debug = 'debug',
   easy = 'easy',
   hard = 'hard'
 }

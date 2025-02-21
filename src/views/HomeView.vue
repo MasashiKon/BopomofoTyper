@@ -29,6 +29,7 @@ import { reverseZhuyin } from '@/utils/convertZhuyin'
 import VisualKeyboard from '@/components/VisualKeyboard.vue'
 import RankingContainer from '@/components/RankingContainer.vue'
 import MenuScene from '@/components/MenuScene.vue'
+import { debug } from 'console'
 
 const gameTime = 120
 const baseVolume = 1
@@ -244,7 +245,7 @@ const startGame = async () => {
     while (sentences.high.length > 0) {
       sentences.high.shift()
     }
-    await fetchSentences(sentences, level.value as Level)
+    await fetchSentences(sentences, level.value as Level, 204) // debug
     if (interval) {
       clearInterval(interval)
     }
@@ -574,6 +575,9 @@ const setLevel = (e: MouseEvent) => {
   if (button.getAttribute('data-value') === Level.practice) {
     level.value = Level.practice
     localStorage.setItem(LocalStrageName.level, Level.practice)
+  } else if (button.getAttribute('data-value') === Level.debug) {
+    level.value = Level.debug
+    localStorage.setItem(LocalStrageName.level, Level.debug)
   } else if (button.getAttribute('data-value') === Level.easy) {
     level.value = Level.easy
     localStorage.setItem(LocalStrageName.level, Level.easy)

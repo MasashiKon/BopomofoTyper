@@ -29,7 +29,6 @@ import { reverseZhuyin } from '@/utils/convertZhuyin'
 import VisualKeyboard from '@/components/VisualKeyboard.vue'
 import RankingContainer from '@/components/RankingContainer.vue'
 import MenuScene from '@/components/MenuScene.vue'
-import { debug } from 'console'
 
 const gameTime = 120
 const baseVolume = 1

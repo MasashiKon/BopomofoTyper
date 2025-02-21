@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { Level, GameState } from '@/type/enums'
+
+const isDev = import.meta.env.MODE === 'development'
 const { level } = defineProps<{
   level: Level
   isFocused: boolean
@@ -19,6 +21,7 @@ const emit = defineEmits(['setLevel', 'toggleGame'])
       {{ $t('practice') }}
     </div>
     <div
+      v-if="isDev"
       class="game-button"
       :class="[level === Level.debug ? 'level-selected' : '']"
       :data-value="Level.debug"

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Level, GameState } from '@/type/enums'
 
-const isDev = import.meta.env.MODE === 'development'
+const isDev:boolean = import.meta.env.MODE === 'development'
 const { level } = defineProps<{
   level: Level
   isFocused: boolean

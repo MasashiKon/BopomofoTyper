@@ -30,6 +30,7 @@ import VisualKeyboard from '@/components/VisualKeyboard.vue'
 import RankingContainer from '@/components/RankingContainer.vue'
 import MenuScene from '@/components/MenuScene.vue'
 
+const isDev = import.meta.env.MODE === 'development'
 const gameTime = 120
 const baseVolume = 1
 const streakThreshold = 5
@@ -62,6 +63,7 @@ const verticalZhuyin = ref(
 const hideZhuyin = ref(
   localStorage.getItem(LocalStrageName.hideZhuyin) === 'true' ? true : false || false
 )
+const debugWordId = ref('')
 
 let keys: Element[]
 
@@ -244,7 +246,7 @@ const startGame = async () => {
     while (sentences.high.length > 0) {
       sentences.high.shift()
     }
-    await fetchSentences(sentences, level.value as Level, 204) // debug
+    await fetchSentences(sentences, level.value as Level, Number(debugWordId.value)) // debug
     if (interval) {
       clearInterval(interval)
     }
@@ -689,6 +691,7 @@ const shareToSocial = (socialMedia: SocialMedia) => {
         <div class="current-lang">{{ $t('translation') }}: {{ $t('currentLang') }}</div>
         <button v-on:click="changeLanguage('en')" class="lang-button">{{ $t('english') }}</button>
         <button v-on:click="changeLanguage('ja')" class="lang-button">{{ $t('japanese') }}</button>
+        <input v-if="isDev" v-model="debugWordId" placeholder="Word ID" />
         <div
           id="game-container"
           tabindex="0"

@@ -152,7 +152,7 @@ const convertToZhuyin = () => {
       <!-- <input type="text" v-model="wordToConvert" />
       <div class="game-button" @click="convertToZhuyin">Convert</div>
       <input type="text" v-model="convertedZhuyin" /> -->
-      <div>Now Hibernating</div>
+      <div>Now Hibernating...</div>
     </div>
   </main>
 </template>

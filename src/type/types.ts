@@ -25,6 +25,7 @@ export type Word = {
   display: string
   kanji: Kanji[]
   partOfSpeech: PartOfSpeech
+  preferenceOfSpelling: string[][] | number[][] | null
 }
 
 export type Chunk = {

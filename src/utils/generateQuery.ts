@@ -18,6 +18,7 @@ export default (level: Level, innerLevel: number): string => {
                       display
                       kanji
                       partOfSpeech
+                      preferenceOfSpelling
                       words_kanjiCollection {
                         edges {
                           node {
@@ -54,6 +55,7 @@ export default (level: Level, innerLevel: number): string => {
                               display
                               kanji
                               partOfSpeech
+                              preferenceOfSpelling
                               words_kanjiCollection {
                                 edges {
                                   node {
@@ -105,6 +107,7 @@ export default (level: Level, innerLevel: number): string => {
                       display
                       kanji
                       partOfSpeech
+                      preferenceOfSpelling
                       words_kanjiCollection {
                         edges {
                           node {

@@ -13,23 +13,46 @@ const generateSentences = (
   translationIndex: { index: number }
 ) => {
   if (!res.data.data) return
-  if (level == Level.debug) {
+  if (level === Level.debug) {
     const word = res.data.data.wordsCollection.edges[0].node
 
     const wordContainer: Word = {
       display: word.display,
       kanji: [],
-      partOfSpeech: word.partOfSpeech
+      partOfSpeech: word.partOfSpeech,
+      preferenceOfSpelling: word.preferenceOfSpelling
     }
 
-    for (const kanjiLiteral of word.kanji) {
+    if (wordContainer.preferenceOfSpelling) {
+      wordContainer.preferenceOfSpelling = wordContainer.preferenceOfSpelling.map((numArray) =>
+        numArray.map((num) => Number(num))
+      )
+    }
+
+    for (const [i, kanjiLiteral] of word.kanji.entries()) {
       for (const kanjiNode of word.words_kanjiCollection.edges) {
-        const kanji = kanjiNode.node.kanji
+        const kanji = JSON.parse(JSON.stringify(kanjiNode.node.kanji))
         if (kanji.display === kanjiLiteral) {
           const kanjiContainer: Kanji = {
             display: kanji.display,
             done: false,
             zhuyin: []
+          }
+
+          if (wordContainer.preferenceOfSpelling) {
+            for (const [y, preference] of wordContainer.preferenceOfSpelling[i].entries()) {
+              if (preference) {
+                if (y + 1 === preference) {
+                  continue
+                }
+                const tempZhuyin = kanji[`zhuyin${y >= 2 ? y : ''}`]
+                kanji[`zhuyin${y >= 2 ? y : ''}`] =
+                  kanji[`zhuyin${preference >= 2 ? preference : ''}`]
+                kanji[`zhuyin${preference >= 2 ? preference : ''}`] = tempZhuyin
+              } else {
+                delete kanji[`zhuyin${y + 1 >= 2 ? y + 1 : ''}`]
+              }
+            }
           }
 
           for (const zhuyinLiteral of kanji.zhuyin) {
@@ -169,17 +192,42 @@ const generateSentences = (
                 const wordContainer: Word = {
                   display: word.display,
                   kanji: [],
-                  partOfSpeech: word.partOfSpeech
+                  partOfSpeech: word.partOfSpeech,
+                  preferenceOfSpelling: word.preferenceOfSpelling
                 }
 
-                for (const kanjiLiteral of word.kanji) {
+                if (wordContainer.preferenceOfSpelling) {
+                  wordContainer.preferenceOfSpelling = wordContainer.preferenceOfSpelling.map(
+                    (numArray) => numArray.map((num) => Number(num))
+                  )
+                }
+
+                for (const [i, kanjiLiteral] of word.kanji.entries()) {
                   for (const kanjiNode of word.words_kanjiCollection.edges) {
-                    const kanji = kanjiNode.node.kanji
+                    const kanji = JSON.parse(JSON.stringify(kanjiNode.node.kanji))
                     if (kanji.display === kanjiLiteral) {
                       const kanjiContainer: Kanji = {
                         display: kanji.display,
                         done: false,
                         zhuyin: []
+                      }
+
+                      if (wordContainer.preferenceOfSpelling) {
+                        for (const [y, preference] of wordContainer.preferenceOfSpelling[
+                          i
+                        ].entries()) {
+                          if (preference) {
+                            if (y + 1 === preference) {
+                              continue
+                            }
+                            const tempZhuyin = kanji[`zhuyin${y >= 2 ? y : ''}`]
+                            kanji[`zhuyin${y >= 2 ? y : ''}`] =
+                              kanji[`zhuyin${preference >= 2 ? preference : ''}`]
+                            kanji[`zhuyin${preference >= 2 ? preference : ''}`] = tempZhuyin
+                          } else {
+                            delete kanji[`zhuyin${y + 1 >= 2 ? y + 1 : ''}`]
+                          }
+                        }
                       }
 
                       for (const zhuyinLiteral of kanji.zhuyin) {
@@ -239,17 +287,40 @@ const generateSentences = (
           const wordContainer: Word = {
             display: word.display,
             kanji: [],
-            partOfSpeech: word.partOfSpeech
+            partOfSpeech: word.partOfSpeech,
+            preferenceOfSpelling: word.preferenceOfSpelling
           }
 
-          for (const kanjiLiteral of word.kanji) {
+          if (wordContainer.preferenceOfSpelling) {
+            wordContainer.preferenceOfSpelling = wordContainer.preferenceOfSpelling.map(
+              (numArray) => numArray.map((num) => Number(num))
+            )
+          }
+
+          for (const [i, kanjiLiteral] of word.kanji.entries()) {
             for (const kanjiNode of word.words_kanjiCollection.edges) {
-              const kanji = kanjiNode.node.kanji
+              const kanji = JSON.parse(JSON.stringify(kanjiNode.node.kanji))
               if (kanji.display === kanjiLiteral) {
                 const kanjiContainer: Kanji = {
                   display: kanji.display,
                   done: false,
                   zhuyin: []
+                }
+
+                if (wordContainer.preferenceOfSpelling) {
+                  for (const [y, preference] of wordContainer.preferenceOfSpelling[i].entries()) {
+                    if (preference) {
+                      if (y + 1 === preference) {
+                        continue
+                      }
+                      const tempZhuyin = kanji[`zhuyin${y >= 2 ? y : ''}`]
+                      kanji[`zhuyin${y >= 2 ? y : ''}`] =
+                        kanji[`zhuyin${preference >= 2 ? preference : ''}`]
+                      kanji[`zhuyin${preference >= 2 ? preference : ''}`] = tempZhuyin
+                    } else {
+                      delete kanji[`zhuyin${y + 1 >= 2 ? y + 1 : ''}`]
+                    }
+                  }
                 }
 
                 for (const zhuyinLiteral of kanji.zhuyin) {
@@ -313,8 +384,7 @@ const generateSentences = (
 
 export default async (sentences: SentenceContainer, level: Level, debug_id?: number) => {
   const translationIndex = { index: 1 }
-  if (level == Level.debug) {
-    console.log(debug_id)
+  if (level === Level.debug) {
     const res1 = await axios.post(
       import.meta.env.VITE_DB_URL,
       {
@@ -325,6 +395,7 @@ export default async (sentences: SentenceContainer, level: Level, debug_id?: num
                         display
                         kanji
                         partOfSpeech
+                        preferenceOfSpelling
                         words_kanjiCollection {
                           edges {
                             node {
@@ -354,7 +425,6 @@ export default async (sentences: SentenceContainer, level: Level, debug_id?: num
         }
       }
     )
-
     generateSentences(res1, sentences.low, 1, level, translationIndex)
   } else if (level !== Level.practice) {
     const res1 = await axios.post(

@@ -121,7 +121,8 @@ export enum MeanOfChunk {
   subjectVerb = 'subjectVerb',
   verbObject = 'verbObject',
   subject = 'subject',
-  interrogative = 'interrogative'
+  interrogative = 'interrogative',
+  interjection = 'interjection'
 }
 
 export enum AvailableLang {
